@@ -1,10 +1,16 @@
 <div class="calendar-container">
   <div class="header-row">
-    <div class="time-slot-header"></div> <!-- This is for the top-left empty cell -->
-    <div *ngFor="let day of days" class="day-header">{{ day }}</div>
+    <div class="time-slot-header"></div>
+    @for (day of days; track $index) {
+    <div class="day-header">{{ day }}</div>
+    }
   </div>
-  <div *ngFor="let hour of hours" class="calendar-row">
+  @for (hour of hours; track $index) {
+  <div class="calendar-row">
     <div class="time-slot">{{ hour }}</div>
-    <div *ngFor="let day of days" class="calendar-cell"></div>
+    @for (day of days; track $index) {
+    <div class="calendar-cell"></div>
+    }
   </div>
+  }
 </div>

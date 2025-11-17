@@ -1,10 +1,8 @@
 import { Component, Input, OnChanges, SimpleChanges } from '@angular/core';
-import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-week-calendar',
-  standalone: true,
-  imports: [CommonModule],
+  imports: [],
   templateUrl: './week-calendar.html',
   styleUrls: ['./week-calendar.scss'],
 })
