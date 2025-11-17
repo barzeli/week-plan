@@ -15,31 +15,24 @@ export class WeekCalendarComponent {
   days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
   hours = computed(() => {
-    const hours: string[] = [];
-    const startHour = this.startHour();
-    const startMinute = this.startMinute();
-    const endHour = this.endHour();
-    const endMinute = this.endMinute();
+    const startTimeInMinutes = this.startHour() * 60 + this.startMinute();
+    const endTimeInMinutes = this.endHour() * 60 + this.endMinute();
 
-    for (let i = startHour; i <= endHour; i++) {
-      for (let j = 0; j < 60; j += 15) {
-        if (i === startHour && j < startMinute) {
-          continue;
-        }
-        if (i === endHour && j > endMinute) {
-          continue;
-        }
+    const numberOfSlots = Math.floor((endTimeInMinutes - startTimeInMinutes) / 15) + 1;
 
-        let hour = i;
-        if (hour === 24) {
-          hour = 0;
-        }
+    return Array.from({ length: numberOfSlots }, (_, index) => {
+      const totalMinutes = startTimeInMinutes + index * 15;
+      let hour = Math.floor(totalMinutes / 60);
+      const minute = totalMinutes % 60;
 
-        const formattedHour = hour < 10 ? '0' + hour : String(hour);
-        const formattedMinute = j < 10 ? '0' + j : String(j);
-        hours.push(`${formattedHour}:${formattedMinute}`);
+      if (hour === 24) {
+        hour = 0;
       }
-    }
-    return hours;
+
+      const formattedHour = String(hour).padStart(2, '0');
+      const formattedMinute = String(minute).padStart(2, '0');
+
+      return `${formattedHour}:${formattedMinute}`;
+    });
   });
 }
