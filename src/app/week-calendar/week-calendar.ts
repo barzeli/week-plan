@@ -1,4 +1,4 @@
-import { Component, Input, OnChanges, SimpleChanges } from '@angular/core';
+import { Component, computed, input } from '@angular/core';
 
 @Component({
   selector: 'app-week-calendar',
@@ -6,38 +6,27 @@ import { Component, Input, OnChanges, SimpleChanges } from '@angular/core';
   templateUrl: './week-calendar.html',
   styleUrls: ['./week-calendar.scss'],
 })
-export class WeekCalendarComponent implements OnChanges {
-  @Input() startHour = 8;
-  @Input() startMinute = 30;
-  @Input() endHour = 24;
-  @Input() endMinute = 0;
+export class WeekCalendarComponent {
+  startHour = input(8);
+  startMinute = input(30);
+  endHour = input(24);
+  endMinute = input(0);
 
   days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-  hours: string[] = [];
 
-  constructor() {
-    this.generateTimeSlots();
-  }
+  hours = computed(() => {
+    const hours: string[] = [];
+    const startHour = this.startHour();
+    const startMinute = this.startMinute();
+    const endHour = this.endHour();
+    const endMinute = this.endMinute();
 
-  ngOnChanges(changes: SimpleChanges): void {
-    if (
-      changes['startHour'] ||
-      changes['startMinute'] ||
-      changes['endHour'] ||
-      changes['endMinute']
-    ) {
-      this.generateTimeSlots();
-    }
-  }
-
-  generateTimeSlots() {
-    this.hours = [];
-    for (let i = this.startHour; i <= this.endHour; i++) {
+    for (let i = startHour; i <= endHour; i++) {
       for (let j = 0; j < 60; j += 15) {
-        if (i === this.startHour && j < this.startMinute) {
+        if (i === startHour && j < startMinute) {
           continue;
         }
-        if (i === this.endHour && j > this.endMinute) {
+        if (i === endHour && j > endMinute) {
           continue;
         }
 
@@ -48,8 +37,9 @@ export class WeekCalendarComponent implements OnChanges {
 
         const formattedHour = hour < 10 ? '0' + hour : String(hour);
         const formattedMinute = j < 10 ? '0' + j : String(j);
-        this.hours.push(`${formattedHour}:${formattedMinute}`);
+        hours.push(`${formattedHour}:${formattedMinute}`);
       }
     }
-  }
+    return hours;
+  });
 }

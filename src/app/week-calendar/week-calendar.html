@@ -5,7 +5,7 @@
     <div class="day-header">{{ day }}</div>
     }
   </div>
-  @for (hour of hours; track $index) {
+  @for (hour of hours(); track $index) {
   <div class="calendar-row">
     <div class="time-slot">{{ hour }}</div>
     @for (day of days; track $index) {
