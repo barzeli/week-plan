@@ -1,4 +1,5 @@
 .calendar-container {
+  direction: rtl;
   display: grid;
   grid-template-columns: 60px repeat(7, 1fr); /* Fixed width for time column */
   max-height: 80vh;
@@ -24,11 +25,11 @@
       font-weight: bold;
       border-bottom: 1px solid #ccc;
       padding: 10px 5px;
+      text-align: center;
     }
 
     .day-header {
-      text-align: center;
-      border-left: 1px solid #ccc;
+      border-right: 1px solid #ccc;
     }
 
     .time-slot {
@@ -42,7 +43,7 @@
 
     .calendar-cell {
       border-bottom: 1px solid #eee;
-      border-left: 1px solid #ccc;
+      border-right: 1px solid #ccc;
       height: 30px;
     }
   }

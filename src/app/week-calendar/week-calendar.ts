@@ -12,7 +12,7 @@ export class WeekCalendarComponent {
   endHour = input(24);
   endMinute = input(0);
 
-  days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+  days = ['ראשון', 'שני', 'שלישי', 'רביעי', 'חמישי', 'שישי', 'שבת'];
 
   hours = computed(() => {
     const startTimeInMinutes = this.startHour() * 60 + this.startMinute();
