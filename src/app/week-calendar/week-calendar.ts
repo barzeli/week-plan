@@ -1,4 +1,12 @@
-import { Component, computed, input, ElementRef, viewChild } from '@angular/core';
+import {
+  Component,
+  computed,
+  input,
+  ElementRef,
+  viewChild,
+  AfterViewInit,
+  ChangeDetectorRef,
+} from '@angular/core';
 
 interface CalendarCell {
   day: string;
@@ -13,9 +21,10 @@ interface CalendarCell {
   host: {
     '(document:mousemove)': 'onDocumentMouseMove($event)',
     '(document:mouseup)': 'onDocumentMouseUp()',
+    '(window:resize)': 'onResize()',
   },
 })
-export class WeekCalendarComponent {
+export class WeekCalendarComponent implements AfterViewInit {
   startHour = input(8);
   startMinute = input(30);
   endHour = input(24);
@@ -52,7 +61,29 @@ export class WeekCalendarComponent {
 
   calendarContainer = viewChild.required<ElementRef<HTMLDivElement>>('calendarContainer');
 
-  constructor() {}
+  private dayWidth = 0;
+  private headerHeight = 0;
+  private cellHeight = 30; // from scss
+
+  constructor(private cdr: ChangeDetectorRef) {}
+
+  ngAfterViewInit() {
+    this.calculateDimensions();
+  }
+
+  onResize() {
+    this.calculateDimensions();
+  }
+
+  calculateDimensions() {
+    const container = this.calendarContainer().nativeElement;
+    const header = container.querySelector('.header-row') as HTMLElement;
+    if (container && header) {
+      this.dayWidth = (container.offsetWidth - 60) / 7; // 60px for time column
+      this.headerHeight = header.offsetHeight;
+      this.cdr.detectChanges();
+    }
+  }
 
   onDragStart(day: string, hour: string) {
     this.isDragging = true;
@@ -65,6 +96,16 @@ export class WeekCalendarComponent {
 
     const calendarContainerElement = this.calendarContainer().nativeElement;
     const containerRect = calendarContainerElement.getBoundingClientRect();
+
+    const hoveredElement = document.elementFromPoint(event.clientX, event.clientY);
+    if (hoveredElement && hoveredElement.classList.contains('calendar-cell')) {
+      const day = hoveredElement.getAttribute('data-day');
+      const hour = hoveredElement.getAttribute('data-hour');
+      if (day && hour) {
+        this.onDragOver(day, hour);
+      }
+    }
+
     const scrollAmount = 10;
 
     if (event.clientY < containerRect.top + 30) {
@@ -72,16 +113,10 @@ export class WeekCalendarComponent {
     } else if (event.clientY > containerRect.bottom - 30) {
       calendarContainerElement.scrollTop += scrollAmount;
     }
-
-    if (event.clientX < containerRect.left + 30) {
-      calendarContainerElement.scrollLeft -= scrollAmount;
-    } else if (event.clientX > containerRect.right - 30) {
-      calendarContainerElement.scrollLeft += scrollAmount;
-    }
   }
 
   onDragOver(day: string, hour: string) {
-    if (this.isDragging) {
+    if (this.isDragging && this.selectionStartCell && this.selectionStartCell.day === day) {
       this.selectionEndCell = { day, hour };
     }
   }
@@ -89,12 +124,30 @@ export class WeekCalendarComponent {
   onDocumentMouseUp() {
     if (this.isDragging) {
       if (this.selectionStartCell && this.selectionEndCell) {
-        const newEvent = {
-          start: this.selectionStartCell,
-          end: this.selectionEndCell,
-        };
-        this.events.push(newEvent);
-        console.log('New event created:', newEvent);
+        const startDayIndex = this.days.indexOf(this.selectionStartCell.day);
+        const endDayIndex = this.days.indexOf(this.selectionEndCell.day);
+        const startHourIndex = this.hours().indexOf(this.selectionStartCell.hour);
+        const endHourIndex = this.hours().indexOf(this.selectionEndCell.hour);
+
+        const minDay = Math.min(startDayIndex, endDayIndex);
+        const maxDay = Math.max(startDayIndex, endDayIndex);
+        const minHour = Math.min(startHourIndex, endHourIndex);
+        const maxHour = Math.max(startHourIndex, endHourIndex);
+
+        for (let i = minDay; i <= maxDay; i++) {
+          const startDay = this.days[i];
+          const endDay = this.days[i];
+          const startHour = this.hours()[minHour];
+          const endHour = this.hours()[maxHour];
+
+          const newEvent = {
+            start: { day: startDay, hour: startHour },
+            end: { day: endDay, hour: endHour },
+            title: 'New Event',
+          };
+          this.events.push(newEvent);
+          console.log('New event created:', newEvent);
+        }
       }
       this.isDragging = false;
       this.selectionStartCell = null;
@@ -122,5 +175,27 @@ export class WeekCalendarComponent {
     const maxHour = Math.max(startHourIndex, endHourIndex);
 
     return dayIndex >= minDay && dayIndex <= maxDay && hourIndex >= minHour && hourIndex <= maxHour;
+  }
+
+  getEventStyle(event: any) {
+    const startDayIndex = this.days.indexOf(event.start.day);
+    const startHourIndex = this.hours().indexOf(event.start.hour);
+    const endHourIndex = this.hours().indexOf(event.end.hour);
+
+    if (startDayIndex === -1 || startHourIndex === -1 || endHourIndex === -1) {
+      return {};
+    }
+
+    const top = startHourIndex * this.cellHeight + this.headerHeight;
+    const right = startDayIndex * this.dayWidth;
+    const width = this.dayWidth;
+    const height = (endHourIndex - startHourIndex + 1) * this.cellHeight;
+
+    return {
+      top: `${top}px`,
+      right: `${right}px`,
+      width: `${width}px`,
+      height: `${height}px`,
+    };
   }
 }

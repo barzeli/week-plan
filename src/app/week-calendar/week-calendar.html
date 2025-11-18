@@ -1,8 +1,4 @@
-<div
-  #calendarContainer
-  class="calendar-container"
-  (dragstart)="$event.preventDefault()"
->
+<div #calendarContainer class="calendar-container" (dragstart)="$event.preventDefault()">
   <div class="header-row">
     <div class="time-slot-header"></div>
     @for (day of days; track $index) {
@@ -22,4 +18,9 @@
     }
   </div>
   }
+  <div class="events-container">
+    @for (event of events; track $index) {
+    <div class="event" [style]="getEventStyle(event)">{{ event.title }}</div>
+    }
+  </div>
 </div>
