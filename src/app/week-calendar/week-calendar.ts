@@ -1,4 +1,4 @@
-import { Component, computed, input, ViewChild, ElementRef, Renderer2 } from '@angular/core';
+import { Component, computed, input, ElementRef, Renderer2, viewChild } from '@angular/core';
 
 interface CalendarCell {
   day: string;
@@ -46,7 +46,7 @@ export class WeekCalendarComponent {
   selectionEndCell: CalendarCell | null = null;
   events: any[] = [];
 
-  @ViewChild('calendarContainer') calendarContainer!: ElementRef<HTMLDivElement>;
+  calendarContainer = viewChild.required<ElementRef<HTMLDivElement>>('calendarContainer');
 
   private mouseMoveListener!: () => void;
   private mouseUpListener!: () => void;
@@ -67,21 +67,23 @@ export class WeekCalendarComponent {
   }
 
   onDrag(event: MouseEvent) {
+    const calendarContainerElement = this.calendarContainer().nativeElement;
+
     if (!this.isDragging) return;
 
-    const containerRect = this.calendarContainer.nativeElement.getBoundingClientRect();
+    const containerRect = calendarContainerElement.getBoundingClientRect();
     const scrollAmount = 10;
 
     if (event.clientY < containerRect.top + 30) {
-      this.calendarContainer.nativeElement.scrollTop -= scrollAmount;
+      calendarContainerElement.scrollTop -= scrollAmount;
     } else if (event.clientY > containerRect.bottom - 30) {
-      this.calendarContainer.nativeElement.scrollTop += scrollAmount;
+      calendarContainerElement.scrollTop += scrollAmount;
     }
 
     if (event.clientX < containerRect.left + 30) {
-      this.calendarContainer.nativeElement.scrollLeft -= scrollAmount;
+      calendarContainerElement.scrollLeft -= scrollAmount;
     } else if (event.clientX > containerRect.right - 30) {
-      this.calendarContainer.nativeElement.scrollLeft += scrollAmount;
+      calendarContainerElement.scrollLeft += scrollAmount;
     }
   }
 
