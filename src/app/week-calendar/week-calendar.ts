@@ -133,15 +133,9 @@ export class WeekCalendarComponent implements AfterViewInit {
         const startDay = this.selectionStartCell.day;
         const endDay = this.selectionStartCell.day;
 
-        const newEvent: CalendarEvent = {
-          start: { day: startDay, hour: this.selectionStartCell.hour },
-          end: { day: endDay, hour: this.selectionEndCell.hour },
-          title: 'New Event',
-        };
-
-        const startDayIndex = this.days.indexOf(newEvent.start.day);
-        const startHourIndex = this.hours().indexOf(newEvent.start.hour);
-        const endHourIndex = this.hours().indexOf(newEvent.end.hour);
+        const startDayIndex = this.days.indexOf(startDay);
+        const startHourIndex = this.hours().indexOf(this.selectionStartCell.hour);
+        const endHourIndex = this.hours().indexOf(this.selectionEndCell.hour);
 
         if (startDayIndex !== -1 && startHourIndex !== -1 && endHourIndex !== -1) {
           const top = this.headerHeight + startHourIndex * this.cellHeight;
@@ -149,16 +143,20 @@ export class WeekCalendarComponent implements AfterViewInit {
           const width = this.dayWidth();
           const height = (endHourIndex - startHourIndex + 1) * this.cellHeight;
 
-          newEvent.style = {
-            top: `${top}px`,
-            right: `${right}px`,
-            width: `${width}px`,
-            height: `${height}px`,
+          const newEvent: CalendarEvent = {
+            start: { day: startDay, hour: this.selectionStartCell.hour },
+            end: { day: endDay, hour: this.selectionEndCell.hour },
+            title: 'New Event',
+            style: {
+              top: `${top}px`,
+              right: `${right}px`,
+              width: `${width}px`,
+              height: `${height}px`,
+            },
           };
-        }
 
-        this.events.push(newEvent);
-        console.log('New event created:', newEvent);
+          this.events.push(newEvent);
+        }
       }
       this.isDragging = false;
       this.selectionStartCell = null;
