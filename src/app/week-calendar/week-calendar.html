@@ -1,4 +1,8 @@
-<div class="calendar-container">
+<div
+  class="calendar-container"
+  (mouseup)="onDragEnd()"
+  (mouseleave)="onDragEnd()"
+>
   <div class="header-row">
     <div class="time-slot-header"></div>
     @for (day of days; track $index) {
@@ -9,7 +13,12 @@
   <div class="calendar-row">
     <div class="time-slot">{{ hour }}</div>
     @for (day of days; track $index) {
-    <div class="calendar-cell"></div>
+    <div
+      class="calendar-cell"
+      [class.selected]="isSelected(day, hour)"
+      (mousedown)="onDragStart(day, hour)"
+      (mouseenter)="onDragOver(day, hour)"
+    ></div>
     }
   </div>
   }

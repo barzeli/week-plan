@@ -1,5 +1,10 @@
 import { Component, computed, input } from '@angular/core';
 
+interface CalendarCell {
+  day: string;
+  hour: string;
+}
+
 @Component({
   selector: 'app-week-calendar',
   imports: [],
@@ -35,4 +40,57 @@ export class WeekCalendarComponent {
       return `${formattedHour}:${formattedMinute}`;
     });
   });
+
+  isDragging = false;
+  selectionStartCell: CalendarCell | null = null;
+  selectionEndCell: CalendarCell | null = null;
+  events: any[] = [];
+
+  onDragStart(day: string, hour: string) {
+    this.isDragging = true;
+    this.selectionStartCell = { day, hour };
+    this.selectionEndCell = { day, hour };
+  }
+
+  onDragOver(day: string, hour: string) {
+    if (this.isDragging) {
+      this.selectionEndCell = { day, hour };
+    }
+  }
+
+  onDragEnd() {
+    if (this.isDragging && this.selectionStartCell && this.selectionEndCell) {
+      const newEvent = {
+        start: this.selectionStartCell,
+        end: this.selectionEndCell,
+      };
+      this.events.push(newEvent);
+      console.log('New event created:', newEvent);
+    }
+    this.isDragging = false;
+    this.selectionStartCell = null;
+    this.selectionEndCell = null;
+  }
+
+  isSelected(day: string, hour: string): boolean {
+    if (!this.isDragging || !this.selectionStartCell || !this.selectionEndCell) {
+      return false;
+    }
+
+    const dayIndex = this.days.indexOf(day);
+    const hourIndex = this.hours().indexOf(hour);
+
+    const startDayIndex = this.days.indexOf(this.selectionStartCell.day);
+    const startHourIndex = this.hours().indexOf(this.selectionStartCell.hour);
+
+    const endDayIndex = this.days.indexOf(this.selectionEndCell.day);
+    const endHourIndex = this.hours().indexOf(this.selectionEndCell.hour);
+
+    const minDay = Math.min(startDayIndex, endDayIndex);
+    const maxDay = Math.max(startDayIndex, endDayIndex);
+    const minHour = Math.min(startHourIndex, endHourIndex);
+    const maxHour = Math.max(startHourIndex, endHourIndex);
+
+    return dayIndex >= minDay && dayIndex <= maxDay && hourIndex >= minHour && hourIndex <= maxHour;
+  }
 }

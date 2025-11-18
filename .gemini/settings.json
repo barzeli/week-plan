@@ -1,0 +1,6 @@
+{
+  "tools": {
+    "coreTools": ["run_shell_command(git)", "run_shell_command(ls)"],
+    "excludeTools": ["run_shell_command(rm)"]
+  }
+}

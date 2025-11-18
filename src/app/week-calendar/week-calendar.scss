@@ -6,6 +6,7 @@
   width: 90vw;
   overflow: auto;
   border: 1px solid #ccc;
+  user-select: none; /* Prevent text selection during drag */
 
   &::-webkit-scrollbar {
     display: none;
@@ -42,9 +43,19 @@
     }
 
     .calendar-cell {
+      position: relative;
       border-bottom: 1px solid #eee;
       border-right: 1px solid #ccc;
       height: 30px;
+      cursor: pointer;
+
+      &:hover {
+        background-color: #f0f8ff; /* A light blue on hover */
+      }
+
+      &.selected {
+        background-color: #add8e6; /* A light blue for selected cells */
+      }
     }
   }
 }
