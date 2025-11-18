@@ -16,7 +16,7 @@
     @for (day of days; track $index) {
     <div
       class="calendar-cell"
-      [class.selected]="isSelected(day, hour)"
+      [class.selected]="selectedCellMap().has(day + '-' + hour)"
       [style.height.px]="cellHeight"
       (mousedown)="onDragStart(day, hour)"
       (mouseenter)="onDragOver(day, hour)"
@@ -28,7 +28,7 @@
   }
   <div class="events-container">
     @for (event of events; track $index) {
-    <div class="event" [style]="getEventStyle(event)">{{ event.title }}</div>
+    <div class="event" [style]="event.style">{{ event.title }}</div>
     }
   </div>
 </div>

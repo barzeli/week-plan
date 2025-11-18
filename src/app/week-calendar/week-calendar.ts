@@ -13,6 +13,13 @@ interface CalendarCell {
   hour: string;
 }
 
+interface CalendarEvent {
+  start: { day: string; hour: string };
+  end: { day: string; hour: string };
+  title: string;
+  style?: { [key: string]: string };
+}
+
 @Component({
   selector: 'app-week-calendar',
   imports: [],
@@ -57,7 +64,8 @@ export class WeekCalendarComponent implements AfterViewInit {
   isDragging = false;
   selectionStartCell: CalendarCell | null = null;
   selectionEndCell: CalendarCell | null = null;
-  events: any[] = [];
+  events: CalendarEvent[] = [];
+  selectedCellMap = signal<Map<string, boolean>>(new Map());
 
   calendarContainer = viewChild.required<ElementRef<HTMLDivElement>>('calendarContainer');
 
@@ -85,6 +93,7 @@ export class WeekCalendarComponent implements AfterViewInit {
     this.isDragging = true;
     this.selectionStartCell = { day, hour };
     this.selectionEndCell = { day, hour };
+    this.updateSelectedCells();
   }
 
   onDocumentMouseMove(event: MouseEvent) {
@@ -114,6 +123,7 @@ export class WeekCalendarComponent implements AfterViewInit {
   onDragOver(day: string, hour: string) {
     if (this.isDragging && this.selectionStartCell && this.selectionStartCell.day === day) {
       this.selectionEndCell = { day, hour };
+      this.updateSelectedCells();
     }
   }
 
@@ -123,55 +133,57 @@ export class WeekCalendarComponent implements AfterViewInit {
         const startDay = this.selectionStartCell.day;
         const endDay = this.selectionStartCell.day;
 
-        const newEvent = {
+        const newEvent: CalendarEvent = {
           start: { day: startDay, hour: this.selectionStartCell.hour },
           end: { day: endDay, hour: this.selectionEndCell.hour },
           title: 'New Event',
         };
+
+        const startDayIndex = this.days.indexOf(newEvent.start.day);
+        const startHourIndex = this.hours().indexOf(newEvent.start.hour);
+        const endHourIndex = this.hours().indexOf(newEvent.end.hour);
+
+        if (startDayIndex !== -1 && startHourIndex !== -1 && endHourIndex !== -1) {
+          const top = this.headerHeight + startHourIndex * this.cellHeight;
+          const right = startDayIndex * this.dayWidth();
+          const width = this.dayWidth();
+          const height = (endHourIndex - startHourIndex + 1) * this.cellHeight;
+
+          newEvent.style = {
+            top: `${top}px`,
+            right: `${right}px`,
+            width: `${width}px`,
+            height: `${height}px`,
+          };
+        }
+
         this.events.push(newEvent);
         console.log('New event created:', newEvent);
       }
       this.isDragging = false;
       this.selectionStartCell = null;
       this.selectionEndCell = null;
+      this.selectedCellMap.set(new Map()); // Clear selection
     }
   }
 
-  isSelected(day: string, hour: string): boolean {
-    if (!this.isDragging || !this.selectionStartCell || !this.selectionEndCell) {
-      return false;
+  private updateSelectedCells() {
+    const newSelectedCellMap = new Map<string, boolean>();
+    if (this.selectionStartCell && this.selectionEndCell) {
+      const startDayIndex = this.days.indexOf(this.selectionStartCell.day);
+      const startHourIndex = this.hours().indexOf(this.selectionStartCell.hour);
+      const endHourIndex = this.hours().indexOf(this.selectionEndCell.hour);
+
+      if (startDayIndex !== -1 && startHourIndex !== -1 && endHourIndex !== -1) {
+        const minHourIndex = Math.min(startHourIndex, endHourIndex);
+        const maxHourIndex = Math.max(startHourIndex, endHourIndex);
+
+        for (let i = minHourIndex; i <= maxHourIndex; i++) {
+          const hour = this.hours()[i];
+          newSelectedCellMap.set(`${this.selectionStartCell.day}-${hour}`, true);
+        }
+      }
     }
-
-    const dayIndex = this.days.indexOf(day);
-    const hourIndex = this.hours().indexOf(hour);
-
-    const startDayIndex = this.days.indexOf(this.selectionStartCell.day);
-
-    const startHourIndex = this.hours().indexOf(this.selectionStartCell.hour);
-    const endHourIndex = this.hours().indexOf(this.selectionEndCell.hour);
-
-    return dayIndex === startDayIndex && hourIndex >= startHourIndex && hourIndex <= endHourIndex;
-  }
-
-  getEventStyle(event: any) {
-    const startDayIndex = this.days.indexOf(event.start.day);
-    const startHourIndex = this.hours().indexOf(event.start.hour);
-    const endHourIndex = this.hours().indexOf(event.end.hour);
-
-    if (startDayIndex === -1 || startHourIndex === -1 || endHourIndex === -1) {
-      return {};
-    }
-
-    const top = this.headerHeight + startHourIndex * this.cellHeight;
-    const right = startDayIndex * this.dayWidth();
-    const width = this.dayWidth();
-    const height = (endHourIndex - startHourIndex + 1) * this.cellHeight;
-
-    return {
-      top: `${top}px`,
-      right: `${right}px`,
-      width: `${width}px`,
-      height: `${height}px`,
-    };
+    this.selectedCellMap.set(newSelectedCellMap);
   }
 }

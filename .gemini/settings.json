@@ -3,7 +3,7 @@
   "tools": {
     "core": ["run_shell_command"],
     "coreTools": ["run_shell_command"],
-    "allowed": ["run_shell_command(git)", "run_shell_command(ls)", "run_shell_command(npm)"],
+    "allowed": ["run_shell_command(ls)", "run_shell_command(npm)"],
     "shell": {
       "enableInteractiveShell": true
     }
