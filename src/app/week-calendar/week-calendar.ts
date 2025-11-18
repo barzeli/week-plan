@@ -1,4 +1,4 @@
-import { Component, computed, input, ElementRef, Renderer2, viewChild } from '@angular/core';
+import { Component, computed, input, ElementRef, viewChild } from '@angular/core';
 
 interface CalendarCell {
   day: string;
@@ -10,6 +10,10 @@ interface CalendarCell {
   imports: [],
   templateUrl: './week-calendar.html',
   styleUrls: ['./week-calendar.scss'],
+  host: {
+    '(document:mousemove)': 'onDocumentMouseMove($event)',
+    '(document:mouseup)': 'onDocumentMouseUp()',
+  },
 })
 export class WeekCalendarComponent {
   startHour = input(8);
@@ -48,29 +52,18 @@ export class WeekCalendarComponent {
 
   calendarContainer = viewChild.required<ElementRef<HTMLDivElement>>('calendarContainer');
 
-  private mouseMoveListener!: () => void;
-  private mouseUpListener!: () => void;
-
-  constructor(private renderer: Renderer2) {}
+  constructor() {}
 
   onDragStart(day: string, hour: string) {
     this.isDragging = true;
     this.selectionStartCell = { day, hour };
     this.selectionEndCell = { day, hour };
-
-    this.mouseMoveListener = this.renderer.listen('document', 'mousemove', (event) => {
-      this.onDrag(event);
-    });
-    this.mouseUpListener = this.renderer.listen('document', 'mouseup', () => {
-      this.onDragEnd();
-    });
   }
 
-  onDrag(event: MouseEvent) {
-    const calendarContainerElement = this.calendarContainer().nativeElement;
-
+  onDocumentMouseMove(event: MouseEvent) {
     if (!this.isDragging) return;
 
+    const calendarContainerElement = this.calendarContainer().nativeElement;
     const containerRect = calendarContainerElement.getBoundingClientRect();
     const scrollAmount = 10;
 
@@ -93,7 +86,7 @@ export class WeekCalendarComponent {
     }
   }
 
-  onDragEnd() {
+  onDocumentMouseUp() {
     if (this.isDragging) {
       if (this.selectionStartCell && this.selectionEndCell) {
         const newEvent = {
@@ -106,13 +99,6 @@ export class WeekCalendarComponent {
       this.isDragging = false;
       this.selectionStartCell = null;
       this.selectionEndCell = null;
-
-      if (this.mouseMoveListener) {
-        this.mouseMoveListener();
-      }
-      if (this.mouseUpListener) {
-        this.mouseUpListener();
-      }
     }
   }
 
