@@ -186,7 +186,7 @@ export class WeekCalendarComponent implements AfterViewInit {
       return {};
     }
 
-    const top = startHourIndex * this.cellHeight + this.headerHeight;
+    const top = this.headerHeight + startHourIndex * this.cellHeight + this.cellHeight;
     const right = startDayIndex * this.dayWidth;
     const width = this.dayWidth;
     const height = (endHourIndex - startHourIndex + 1) * this.cellHeight;

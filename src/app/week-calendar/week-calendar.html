@@ -14,6 +14,8 @@
       [class.selected]="isSelected(day, hour)"
       (mousedown)="onDragStart(day, hour)"
       (mouseenter)="onDragOver(day, hour)"
+      [attr.data-day]="day"
+      [attr.data-hour]="hour"
     ></div>
     }
   </div>
