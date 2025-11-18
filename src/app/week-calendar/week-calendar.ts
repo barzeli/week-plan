@@ -5,7 +5,7 @@ import {
   ElementRef,
   viewChild,
   AfterViewInit,
-  ChangeDetectorRef,
+  signal,
 } from '@angular/core';
 
 interface CalendarCell {
@@ -61,11 +61,9 @@ export class WeekCalendarComponent implements AfterViewInit {
 
   calendarContainer = viewChild.required<ElementRef<HTMLDivElement>>('calendarContainer');
 
-  private dayWidth = 0;
-  private headerHeight = 0;
-  private cellHeight = 30; // from scss
-
-  constructor(private cdr: ChangeDetectorRef) {}
+  dayWidth = signal(0);
+  protected headerHeight = 40;
+  protected cellHeight = 30;
 
   ngAfterViewInit() {
     this.calculateDimensions();
@@ -79,9 +77,7 @@ export class WeekCalendarComponent implements AfterViewInit {
     const container = this.calendarContainer().nativeElement;
     const header = container.querySelector('.header-row') as HTMLElement;
     if (container && header) {
-      this.dayWidth = (container.offsetWidth - 60) / 7; // 60px for time column
-      this.headerHeight = header.offsetHeight;
-      this.cdr.detectChanges();
+      this.dayWidth.set((container.offsetWidth - 60) / 7);
     }
   }
 
@@ -186,9 +182,9 @@ export class WeekCalendarComponent implements AfterViewInit {
       return {};
     }
 
-    const top = this.headerHeight + startHourIndex * this.cellHeight + this.cellHeight;
-    const right = startDayIndex * this.dayWidth;
-    const width = this.dayWidth;
+    const top = this.headerHeight + startHourIndex * this.cellHeight;
+    const right = startDayIndex * this.dayWidth();
+    const width = this.dayWidth();
     const height = (endHourIndex - startHourIndex + 1) * this.cellHeight;
 
     return {
