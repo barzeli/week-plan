@@ -1,7 +1,7 @@
 .calendar-container {
   direction: rtl;
   display: grid;
-  grid-template-columns: 60px repeat(7, 1fr); /* Fixed width for time column */
+  grid-template-columns: var(--time-slots-column-width) repeat(7, 1fr); /* Fixed width for time column */
   max-height: 80vh;
   width: 90vw;
   overflow: auto;

@@ -64,6 +64,7 @@ export class WeekCalendarComponent implements AfterViewInit {
   dayWidth = signal(0);
   protected headerHeight = 40;
   protected cellHeight = 30;
+  protected timeSlotsColumnWidth = 60;
 
   ngAfterViewInit() {
     this.calculateDimensions();
@@ -75,9 +76,8 @@ export class WeekCalendarComponent implements AfterViewInit {
 
   calculateDimensions() {
     const container = this.calendarContainer().nativeElement;
-    const header = container.querySelector('.header-row') as HTMLElement;
-    if (container && header) {
-      this.dayWidth.set((container.offsetWidth - 60) / 7);
+    if (container) {
+      this.dayWidth.set((container.offsetWidth - this.timeSlotsColumnWidth) / 7);
     }
   }
 
@@ -120,30 +120,16 @@ export class WeekCalendarComponent implements AfterViewInit {
   onDocumentMouseUp() {
     if (this.isDragging) {
       if (this.selectionStartCell && this.selectionEndCell) {
-        const startDayIndex = this.days.indexOf(this.selectionStartCell.day);
-        const endDayIndex = this.days.indexOf(this.selectionEndCell.day);
-        const startHourIndex = this.hours().indexOf(this.selectionStartCell.hour);
-        const endHourIndex = this.hours().indexOf(this.selectionEndCell.hour);
+        const startDay = this.selectionStartCell.day;
+        const endDay = this.selectionStartCell.day;
 
-        const minDay = Math.min(startDayIndex, endDayIndex);
-        const maxDay = Math.max(startDayIndex, endDayIndex);
-        const minHour = Math.min(startHourIndex, endHourIndex);
-        const maxHour = Math.max(startHourIndex, endHourIndex);
-
-        for (let i = minDay; i <= maxDay; i++) {
-          const startDay = this.days[i];
-          const endDay = this.days[i];
-          const startHour = this.hours()[minHour];
-          const endHour = this.hours()[maxHour];
-
-          const newEvent = {
-            start: { day: startDay, hour: startHour },
-            end: { day: endDay, hour: endHour },
-            title: 'New Event',
-          };
-          this.events.push(newEvent);
-          console.log('New event created:', newEvent);
-        }
+        const newEvent = {
+          start: { day: startDay, hour: this.selectionStartCell.hour },
+          end: { day: endDay, hour: this.selectionEndCell.hour },
+          title: 'New Event',
+        };
+        this.events.push(newEvent);
+        console.log('New event created:', newEvent);
       }
       this.isDragging = false;
       this.selectionStartCell = null;
@@ -160,17 +146,11 @@ export class WeekCalendarComponent implements AfterViewInit {
     const hourIndex = this.hours().indexOf(hour);
 
     const startDayIndex = this.days.indexOf(this.selectionStartCell.day);
-    const startHourIndex = this.hours().indexOf(this.selectionStartCell.hour);
 
-    const endDayIndex = this.days.indexOf(this.selectionEndCell.day);
+    const startHourIndex = this.hours().indexOf(this.selectionStartCell.hour);
     const endHourIndex = this.hours().indexOf(this.selectionEndCell.hour);
 
-    const minDay = Math.min(startDayIndex, endDayIndex);
-    const maxDay = Math.max(startDayIndex, endDayIndex);
-    const minHour = Math.min(startHourIndex, endHourIndex);
-    const maxHour = Math.max(startHourIndex, endHourIndex);
-
-    return dayIndex >= minDay && dayIndex <= maxDay && hourIndex >= minHour && hourIndex <= maxHour;
+    return dayIndex === startDayIndex && hourIndex >= startHourIndex && hourIndex <= endHourIndex;
   }
 
   getEventStyle(event: any) {

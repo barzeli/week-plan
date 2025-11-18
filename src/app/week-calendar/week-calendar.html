@@ -1,4 +1,9 @@
-<div #calendarContainer class="calendar-container" (dragstart)="$event.preventDefault()">
+<div
+  #calendarContainer
+  class="calendar-container"
+  (dragstart)="$event.preventDefault()"
+  [style.--time-slots-column-width.px]="timeSlotsColumnWidth"
+>
   <div class="header-row">
     <div class="time-slot-header" [style.height.px]="headerHeight"></div>
     @for (day of days; track $index) {
