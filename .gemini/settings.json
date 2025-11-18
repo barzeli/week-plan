@@ -1,6 +1,11 @@
 {
+  "$schema": "https://raw.githubusercontent.com/google-gemini/gemini-cli/main/schemas/settings.schema.json",
   "tools": {
-    "coreTools": ["run_shell_command(git)", "run_shell_command(ls)"],
-    "excludeTools": ["run_shell_command(rm)"]
+    "core": ["run_shell_command"],
+    "coreTools": ["run_shell_command"],
+    "allowed": ["run_shell_command(git)", "run_shell_command(ls)", "run_shell_command(npm)"],
+    "shell": {
+      "enableInteractiveShell": true
+    }
   }
 }

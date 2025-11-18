@@ -1,4 +1,4 @@
-import { Component, computed, input } from '@angular/core';
+import { Component, computed, input, ViewChild, ElementRef, Renderer2 } from '@angular/core';
 
 interface CalendarCell {
   day: string;
@@ -46,10 +46,43 @@ export class WeekCalendarComponent {
   selectionEndCell: CalendarCell | null = null;
   events: any[] = [];
 
+  @ViewChild('calendarContainer') calendarContainer!: ElementRef<HTMLDivElement>;
+
+  private mouseMoveListener!: () => void;
+  private mouseUpListener!: () => void;
+
+  constructor(private renderer: Renderer2) {}
+
   onDragStart(day: string, hour: string) {
     this.isDragging = true;
     this.selectionStartCell = { day, hour };
     this.selectionEndCell = { day, hour };
+
+    this.mouseMoveListener = this.renderer.listen('document', 'mousemove', (event) => {
+      this.onDrag(event);
+    });
+    this.mouseUpListener = this.renderer.listen('document', 'mouseup', () => {
+      this.onDragEnd();
+    });
+  }
+
+  onDrag(event: MouseEvent) {
+    if (!this.isDragging) return;
+
+    const containerRect = this.calendarContainer.nativeElement.getBoundingClientRect();
+    const scrollAmount = 10;
+
+    if (event.clientY < containerRect.top + 30) {
+      this.calendarContainer.nativeElement.scrollTop -= scrollAmount;
+    } else if (event.clientY > containerRect.bottom - 30) {
+      this.calendarContainer.nativeElement.scrollTop += scrollAmount;
+    }
+
+    if (event.clientX < containerRect.left + 30) {
+      this.calendarContainer.nativeElement.scrollLeft -= scrollAmount;
+    } else if (event.clientX > containerRect.right - 30) {
+      this.calendarContainer.nativeElement.scrollLeft += scrollAmount;
+    }
   }
 
   onDragOver(day: string, hour: string) {
@@ -59,17 +92,26 @@ export class WeekCalendarComponent {
   }
 
   onDragEnd() {
-    if (this.isDragging && this.selectionStartCell && this.selectionEndCell) {
-      const newEvent = {
-        start: this.selectionStartCell,
-        end: this.selectionEndCell,
-      };
-      this.events.push(newEvent);
-      console.log('New event created:', newEvent);
+    if (this.isDragging) {
+      if (this.selectionStartCell && this.selectionEndCell) {
+        const newEvent = {
+          start: this.selectionStartCell,
+          end: this.selectionEndCell,
+        };
+        this.events.push(newEvent);
+        console.log('New event created:', newEvent);
+      }
+      this.isDragging = false;
+      this.selectionStartCell = null;
+      this.selectionEndCell = null;
+
+      if (this.mouseMoveListener) {
+        this.mouseMoveListener();
+      }
+      if (this.mouseUpListener) {
+        this.mouseUpListener();
+      }
     }
-    this.isDragging = false;
-    this.selectionStartCell = null;
-    this.selectionEndCell = null;
   }
 
   isSelected(day: string, hour: string): boolean {

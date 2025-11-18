@@ -1,7 +1,7 @@
 <div
+  #calendarContainer
   class="calendar-container"
-  (mouseup)="onDragEnd()"
-  (mouseleave)="onDragEnd()"
+  (dragstart)="$event.preventDefault()"
 >
   <div class="header-row">
     <div class="time-slot-header"></div>
