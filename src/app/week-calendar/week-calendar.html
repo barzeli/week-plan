@@ -29,6 +29,18 @@
   <div class="events-container">
     @for (event of events; track $index) {
     <div class="event" [style]="event.style">{{ event.title }}</div>
+    } @if (pendingEvent(); as pending) {
+    <div class="event-input-container" [style]="pending.style">
+      <input
+        #eventInput
+        type="text"
+        [(ngModel)]="newEventTitle"
+        (blur)="confirmEventCreation()"
+        (keydown.enter)="confirmEventCreation()"
+        (keydown.escape)="pendingEvent.set(null)"
+        placeholder="Event name..."
+      />
+    </div>
     }
   </div>
 </div>

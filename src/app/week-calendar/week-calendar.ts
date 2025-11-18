@@ -6,7 +6,9 @@ import {
   viewChild,
   AfterViewInit,
   signal,
+  effect,
 } from '@angular/core';
+import { FormsModule } from '@angular/forms';
 
 interface CalendarCell {
   day: string;
@@ -20,9 +22,15 @@ interface CalendarEvent {
   style?: { [key: string]: string };
 }
 
+interface PendingEvent {
+  start: { day: string; hour: string };
+  end: { day: string; hour: string };
+  style: { [key: string]: string };
+}
+
 @Component({
   selector: 'app-week-calendar',
-  imports: [],
+  imports: [FormsModule],
   templateUrl: './week-calendar.html',
   styleUrls: ['./week-calendar.scss'],
   host: {
@@ -66,13 +74,24 @@ export class WeekCalendarComponent implements AfterViewInit {
   selectionEndCell: CalendarCell | null = null;
   events: CalendarEvent[] = [];
   selectedCellMap = signal<Map<string, boolean>>(new Map());
+  pendingEvent = signal<PendingEvent | null>(null);
+  newEventTitle = signal('');
 
   calendarContainer = viewChild.required<ElementRef<HTMLDivElement>>('calendarContainer');
+  eventInput = viewChild<ElementRef<HTMLInputElement>>('eventInput');
 
   dayWidth = signal(0);
   protected headerHeight = 40;
   protected cellHeight = 30;
   protected timeSlotsColumnWidth = 60;
+
+  constructor() {
+    effect(() => {
+      if (this.eventInput()) {
+        this.eventInput()!.nativeElement.focus();
+      }
+    });
+  }
 
   ngAfterViewInit() {
     this.calculateDimensions();
@@ -129,40 +148,51 @@ export class WeekCalendarComponent implements AfterViewInit {
 
   onDocumentMouseUp() {
     if (this.isDragging) {
-      if (this.selectionStartCell && this.selectionEndCell) {
-        const startDay = this.selectionStartCell.day;
-        const endDay = this.selectionStartCell.day;
-
-        const startDayIndex = this.days.indexOf(startDay);
-        const startHourIndex = this.hours().indexOf(this.selectionStartCell.hour);
-        const endHourIndex = this.hours().indexOf(this.selectionEndCell.hour);
-
-        if (startDayIndex !== -1 && startHourIndex !== -1 && endHourIndex !== -1) {
-          const top = this.headerHeight + startHourIndex * this.cellHeight;
-          const right = startDayIndex * this.dayWidth();
-          const width = this.dayWidth();
-          const height = (endHourIndex - startHourIndex + 1) * this.cellHeight;
-
-          const newEvent: CalendarEvent = {
-            start: { day: startDay, hour: this.selectionStartCell.hour },
-            end: { day: endDay, hour: this.selectionEndCell.hour },
-            title: 'New Event',
-            style: {
-              top: `${top}px`,
-              right: `${right}px`,
-              width: `${width}px`,
-              height: `${height}px`,
-            },
-          };
-
-          this.events.push(newEvent);
-        }
-      }
-      this.isDragging = false;
-      this.selectionStartCell = null;
-      this.selectionEndCell = null;
-      this.selectedCellMap.set(new Map()); // Clear selection
+      this.preparePendingEvent();
+      this.resetDragState();
     }
+  }
+
+  private preparePendingEvent() {
+    if (!this.selectionStartCell || !this.selectionEndCell) return;
+
+    const startDay = this.selectionStartCell.day;
+    const startDayIndex = this.days.indexOf(startDay);
+    const startHourIndex = this.hours().indexOf(this.selectionStartCell.hour);
+    const endHourIndex = this.hours().indexOf(this.selectionEndCell.hour);
+
+    if (startDayIndex === -1 || startHourIndex === -1 || endHourIndex === -1) return;
+
+    const minHourIndex = Math.min(startHourIndex, endHourIndex);
+    const maxHourIndex = Math.max(startHourIndex, endHourIndex);
+
+    this.pendingEvent.set({
+      start: { day: startDay, hour: this.hours()[minHourIndex] },
+      end: { day: startDay, hour: this.hours()[maxHourIndex] },
+      style: {
+        top: `${this.headerHeight + minHourIndex * this.cellHeight}px`,
+        right: `${startDayIndex * this.dayWidth()}px`,
+        width: `${this.dayWidth()}px`,
+        height: `${(maxHourIndex - minHourIndex + 1) * this.cellHeight}px`,
+      },
+    });
+  }
+
+  private resetDragState() {
+    this.isDragging = false;
+    this.selectionStartCell = null;
+    this.selectionEndCell = null;
+    this.selectedCellMap.set(new Map());
+  }
+
+  confirmEventCreation() {
+    const title = this.newEventTitle().trim();
+    const pending = this.pendingEvent();
+    if (title && pending) {
+      this.events.push({ ...pending, title });
+    }
+    this.newEventTitle.set('');
+    this.pendingEvent.set(null);
   }
 
   private updateSelectedCells() {
