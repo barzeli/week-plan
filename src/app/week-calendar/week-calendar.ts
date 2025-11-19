@@ -109,6 +109,11 @@ export class WeekCalendarComponent implements AfterViewInit {
   }
 
   onDragStart(day: string, hour: string) {
+    // If there's already a pending event being named, don't start a new selection.
+    // This prevents creating a second pending event when the user clicks while
+    // naming an existing pending event (e.g. blur caused by a click).
+    if (this.pendingEvent()) return;
+
     this.isDragging = true;
     this.selectionStartCell = { day, hour };
     this.selectionEndCell = { day, hour };
@@ -183,6 +188,16 @@ export class WeekCalendarComponent implements AfterViewInit {
     this.selectionStartCell = null;
     this.selectionEndCell = null;
     this.selectedCellMap.set(new Map());
+  }
+
+  onEventInputBlur() {
+    const active = document.activeElement as HTMLElement | null;
+    const inputEl = this.eventInput && this.eventInput() && this.eventInput()!.nativeElement;
+
+    if (!inputEl || active !== inputEl) {
+      // input not focused — confirm
+      this.confirmEventCreation();
+    }
   }
 
   confirmEventCreation() {

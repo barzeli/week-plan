@@ -35,7 +35,7 @@
         #eventInput
         type="text"
         [(ngModel)]="newEventTitle"
-        (blur)="confirmEventCreation()"
+        (blur)="onEventInputBlur()"
         (keydown.enter)="confirmEventCreation()"
         (keydown.escape)="pendingEvent.set(null)"
         placeholder="Event name..."
