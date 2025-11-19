@@ -19,6 +19,7 @@
   $shadow-light: rgba(255, 255, 255, 0.06);
   $shadow-dark: rgba(0, 0, 0, 0.03);
   $event-font-size: 13px;
+  $event-padding: 6px 8px;
 
   &::-webkit-scrollbar {
     display: none;
@@ -84,6 +85,10 @@
   }
 
   .event {
+    /* keep text baseline same as when the input is present: top padding matches input height */
+    padding: $event-padding;
+    line-height: 1;
+
     position: absolute;
     background-color: $event-bg;
     border: 1px solid $event-border;
@@ -98,7 +103,7 @@
     // When the event is the pending input container, remove the small top padding
     // so the input can sit flush with the event's inner top edge.
     &.pending {
-      padding-top: 0;
+      padding: 0;
       position: absolute;
       z-index: 10;
       pointer-events: auto; // override container's pointer-events:none so input is usable
@@ -112,7 +117,7 @@
         background: rgba(173, 216, 230, 0.9);
         border: none;
         border-radius: 4px;
-        padding: 6px 8px 4px 8px;
+        padding: $event-padding;
         font-size: $event-font-size;
         color: $text-secondary;
         font-weight: 500;
