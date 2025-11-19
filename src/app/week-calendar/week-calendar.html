@@ -34,13 +34,46 @@
       <input
         #eventInput
         type="text"
+        [style.background]="newEventColor()"
         [(ngModel)]="newEventTitle"
         (blur)="onEventInputBlur()"
         (keydown.enter)="confirmEventCreation()"
         (keydown.escape)="pendingEvent.set(null)"
-        placeholder="Event name..."
+        placeholder="כותרת..."
       />
+      <div class="pending-controls" (mousedown)="onPendingControlMouseDown($event)">
+        <div class="color-picker-wrapper">
+          <button
+            type="button"
+            class="color-picker-button"
+            [style.background]="newEventColor()"
+            (click)="toggleColorPalette()"
+            title="Pick event color"
+            aria-label="Pick event color"
+          ></button>
+        </div>
+      </div>
     </div>
     }
   </div>
+  @if (colorPaletteOpen() && pendingEvent()) {
+  <div
+    class="color-palette-dropdown"
+    [style.top]="colorPickerButtonPosition()?.top"
+    [style.left]="colorPickerButtonPosition()?.left"
+    (click)="toggleColorPalette()"
+  >
+    @for (color of colorPalette; track color) {
+    <button
+      type="button"
+      class="palette-color"
+      [style.background]="color"
+      [class.active]="newEventColor() === color"
+      (click)="setEventColor(color); $event.stopPropagation()"
+      [attr.title]="'Color: ' + color"
+      [attr.aria-label]="'Color: ' + color"
+    ></button>
+    }
+  </div>
+  }
 </div>

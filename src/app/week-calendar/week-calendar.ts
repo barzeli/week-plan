@@ -19,14 +19,10 @@ interface CalendarEvent {
   start: { day: string; hour: string };
   end: { day: string; hour: string };
   title: string;
-  style?: { [key: string]: string };
-}
-
-interface PendingEvent {
-  start: { day: string; hour: string };
-  end: { day: string; hour: string };
   style: { [key: string]: string };
 }
+
+type PendingEvent = Omit<CalendarEvent, 'title'>;
 
 @Component({
   selector: 'app-week-calendar',
@@ -46,6 +42,8 @@ export class WeekCalendarComponent implements AfterViewInit {
   endMinute = input(0);
 
   days = ['ראשון', 'שני', 'שלישי', 'רביעי', 'חמישי', 'שישי', 'שבת'];
+
+  colorPalette = ['#add8e6', '#ffcccc', '#ccffcc', '#ffffcc', '#e6ccff', '#ffccff', '#ccffff'];
 
   hours = computed(() => {
     const startTimeInMinutes = this.startHour() * 60 + this.startMinute();
@@ -76,6 +74,10 @@ export class WeekCalendarComponent implements AfterViewInit {
   selectedCellMap = signal<Map<string, boolean>>(new Map());
   pendingEvent = signal<PendingEvent | null>(null);
   newEventTitle = signal('');
+  newEventColor = signal('#add8e6');
+  colorPaletteOpen = signal(false);
+  colorPickerButtonPosition = signal<{ top: string; left: string } | null>(null);
+  private _ignoreBlur = false;
 
   calendarContainer = viewChild.required<ElementRef<HTMLDivElement>>('calendarContainer');
   eventInput = viewChild<ElementRef<HTMLInputElement>>('eventInput');
@@ -179,6 +181,8 @@ export class WeekCalendarComponent implements AfterViewInit {
         right: `${startDayIndex * this.dayWidth()}px`,
         width: `${this.dayWidth()}px`,
         height: `${(maxHourIndex - minHourIndex + 1) * this.cellHeight}px`,
+        backgroundColor: this.newEventColor(),
+        borderColor: this.newEventColor(),
       },
     });
   }
@@ -191,13 +195,80 @@ export class WeekCalendarComponent implements AfterViewInit {
   }
 
   onEventInputBlur() {
+    if (this._ignoreBlur) {
+      // a control inside the pending event was just interacted with (mousedown),
+      // ignore this blur — the control will handle the interaction.
+      // Reset flag on next tick.
+      setTimeout(() => (this._ignoreBlur = false), 0);
+      return;
+    }
+
+    // If color palette is open, don't confirm the event
+    if (this.colorPaletteOpen()) {
+      return;
+    }
+
     const active = document.activeElement as HTMLElement | null;
     const inputEl = this.eventInput && this.eventInput() && this.eventInput()!.nativeElement;
 
+    // If focus moved to an element inside the pending event (for example the
+    // color picker) we should not confirm the event. Check whether the active
+    // element is contained in the pending `.event.pending` container.
+    const movedInsidePending = !!(active && active.closest && active.closest('.event.pending'));
+
     if (!inputEl || active !== inputEl) {
-      // input not focused — confirm
+      if (movedInsidePending) {
+        // focus moved to a control inside the pending event (color picker etc.)
+        return;
+      }
+
+      // input not focused and focus didn't move inside pending — confirm
       this.confirmEventCreation();
     }
+  }
+
+  onPendingControlMouseDown(event: MouseEvent) {
+    // When user presses a control inside the pending event (e.g. the color
+    // input), the text input will blur. We set a short-lived flag so the blur
+    // handler knows to ignore that blur and not confirm the event.
+    this._ignoreBlur = true;
+  }
+
+  onColorChange() {
+    const pending = this.pendingEvent();
+    if (!pending) return;
+    const color = this.newEventColor();
+    const updated = {
+      ...pending,
+      style: { ...pending.style, backgroundColor: color, borderColor: color },
+    };
+    this.pendingEvent.set(updated);
+  }
+
+  setEventColor(color: string) {
+    this.newEventColor.set(color);
+    const pending = this.pendingEvent();
+    if (!pending) return;
+    const updated = {
+      ...pending,
+      style: { ...pending.style, backgroundColor: color, borderColor: color },
+    };
+    this.pendingEvent.set(updated);
+  }
+
+  toggleColorPalette() {
+    if (!this.colorPaletteOpen()) {
+      // Find the color picker button to position the palette next to it
+      const button = document.querySelector('.color-picker-button') as HTMLElement;
+      if (button) {
+        const rect = button.getBoundingClientRect();
+        this.colorPickerButtonPosition.set({
+          top: `${rect.bottom + 4}px`,
+          left: `${rect.left}px`,
+        });
+      }
+    }
+    this.colorPaletteOpen.set(!this.colorPaletteOpen());
   }
 
   confirmEventCreation() {
