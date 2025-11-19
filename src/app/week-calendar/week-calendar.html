@@ -31,27 +31,24 @@
     <div class="event" [style]="event.style">{{ event.title }}</div>
     } @if (pendingEvent(); as pending) {
     <div class="event pending" [style]="pending.style">
-      <input
-        #eventInput
-        type="text"
-        [style.background]="newEventColor()"
-        [(ngModel)]="newEventTitle"
-        (blur)="onEventInputBlur()"
-        (keydown.enter)="confirmEventCreation()"
-        (keydown.escape)="pendingEvent.set(null)"
-        placeholder="כותרת..."
-      />
-      <div class="pending-controls" (mousedown)="onPendingControlMouseDown($event)">
-        <div class="color-picker-wrapper">
-          <button
-            type="button"
-            class="color-picker-button"
-            [style.background]="newEventColor()"
-            (click)="toggleColorPalette()"
-            title="Pick event color"
-            aria-label="Pick event color"
-          ></button>
-        </div>
+      <div class="pending-top">
+        <input
+          #eventInput
+          type="text"
+          [(ngModel)]="newEventTitle"
+          (blur)="onEventInputBlur()"
+          (keydown.enter)="confirmEventCreation()"
+          (keydown.escape)="pendingEvent.set(null)"
+          placeholder="כותרת..."
+        />
+        <button
+          type="button"
+          class="color-picker-button"
+          [style.background]="newEventColor()"
+          (mousedown)="toggleColorPalette()"
+          title="Pick event color"
+          aria-label="Pick event color"
+        ></button>
       </div>
     </div>
     }

@@ -110,18 +110,16 @@
       display: flex;
       flex-direction: column;
 
-      .pending-controls {
+      .pending-top {
         display: flex;
         align-items: center;
         gap: 6px;
-        padding: 6px 8px;
-        flex: 1;
+        // padding: 6px 8px;
       }
 
       input {
-        height: 30px; // compact top bar
-        flex: 0 0 auto;
-
+        height: 30px;
+        flex: 1;
         border: none;
         border-radius: 4px;
         padding: $event-padding;
@@ -130,12 +128,7 @@
         font-weight: 500;
         outline: none;
         transition: box-shadow 140ms ease, background-color 120ms ease, color 120ms ease;
-
-        &:focus {
-          // Keep blended background but add faint outer ring to indicate focus
-          background: rgba(173, 216, 230, 0.95);
-          color: rgba(0, 0, 0, 0.95);
-        }
+        background: none;
 
         &::placeholder {
           color: $text-muted;
@@ -146,12 +139,6 @@
 
       .color-input-hidden {
         display: none;
-      }
-
-      .color-picker-wrapper {
-        position: relative;
-        display: flex;
-        align-items: center;
       }
 
       .color-picker-button {

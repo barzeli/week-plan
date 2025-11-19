@@ -227,13 +227,6 @@ export class WeekCalendarComponent implements AfterViewInit {
     }
   }
 
-  onPendingControlMouseDown(event: MouseEvent) {
-    // When user presses a control inside the pending event (e.g. the color
-    // input), the text input will blur. We set a short-lived flag so the blur
-    // handler knows to ignore that blur and not confirm the event.
-    this._ignoreBlur = true;
-  }
-
   onColorChange() {
     const pending = this.pendingEvent();
     if (!pending) return;
