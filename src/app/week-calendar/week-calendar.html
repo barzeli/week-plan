@@ -36,7 +36,6 @@
           #eventInput
           type="text"
           [(ngModel)]="newEventTitle"
-          (blur)="onEventInputBlur()"
           (keydown.enter)="confirmEventCreation()"
           (keydown.escape)="pendingEvent.set(null)"
           placeholder="כותרת..."
@@ -44,33 +43,33 @@
         <button
           type="button"
           class="color-picker-button"
+          cdkOverlayOrigin
+          #colorPickerButton="cdkOverlayOrigin"
           [style.background]="newEventColor()"
-          (mousedown)="toggleColorPalette()"
-          title="Pick event color"
-          aria-label="Pick event color"
+          (click)="isOpen = !isOpen"
         ></button>
+
+        <ng-template
+          cdkConnectedOverlay
+          [cdkConnectedOverlayOrigin]="colorPickerButton"
+          [cdkConnectedOverlayOpen]="isOpen"
+        >
+          <div class="color-palette-dropdown">
+            @for (color of colorPalette; track color) {
+            <button
+              type="button"
+              class="palette-color"
+              [style.background]="color"
+              [class.active]="newEventColor() === color"
+              (click)="setEventColor(color); $event.stopPropagation()"
+              [attr.title]="'Color: ' + color"
+              [attr.aria-label]="'Color: ' + color"
+            ></button>
+            }
+          </div>
+        </ng-template>
       </div>
     </div>
     }
   </div>
-  @if (colorPaletteOpen() && pendingEvent()) {
-  <div
-    class="color-palette-dropdown"
-    [style.top]="colorPickerButtonPosition()?.top"
-    [style.left]="colorPickerButtonPosition()?.left"
-    (click)="toggleColorPalette()"
-  >
-    @for (color of colorPalette; track color) {
-    <button
-      type="button"
-      class="palette-color"
-      [style.background]="color"
-      [class.active]="newEventColor() === color"
-      (click)="setEventColor(color); $event.stopPropagation()"
-      [attr.title]="'Color: ' + color"
-      [attr.aria-label]="'Color: ' + color"
-    ></button>
-    }
-  </div>
-  }
 </div>

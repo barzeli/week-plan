@@ -1,3 +1,4 @@
+import { CdkConnectedOverlay, CdkOverlayOrigin, OverlayModule } from '@angular/cdk/overlay';
 import {
   Component,
   computed,
@@ -26,16 +27,19 @@ type PendingEvent = Omit<CalendarEvent, 'title'>;
 
 @Component({
   selector: 'app-week-calendar',
-  imports: [FormsModule],
+  imports: [FormsModule, OverlayModule, CdkOverlayOrigin, CdkConnectedOverlay],
   templateUrl: './week-calendar.html',
   styleUrls: ['./week-calendar.scss'],
   host: {
     '(document:mousemove)': 'onDocumentMouseMove($event)',
     '(document:mouseup)': 'onDocumentMouseUp()',
     '(window:resize)': 'onResize()',
+    '(document:mousedown)': 'onDocumentMouseDown($event)',
   },
 })
 export class WeekCalendarComponent implements AfterViewInit {
+  isOpen = false;
+
   startHour = input(8);
   startMinute = input(30);
   endHour = input(24);
@@ -75,9 +79,6 @@ export class WeekCalendarComponent implements AfterViewInit {
   pendingEvent = signal<PendingEvent | null>(null);
   newEventTitle = signal('');
   newEventColor = signal('#add8e6');
-  colorPaletteOpen = signal(false);
-  colorPickerButtonPosition = signal<{ top: string; left: string } | null>(null);
-  private _ignoreBlur = false;
 
   calendarContainer = viewChild.required<ElementRef<HTMLDivElement>>('calendarContainer');
   eventInput = viewChild<ElementRef<HTMLInputElement>>('eventInput');
@@ -194,35 +195,14 @@ export class WeekCalendarComponent implements AfterViewInit {
     this.selectedCellMap.set(new Map());
   }
 
-  onEventInputBlur() {
-    if (this._ignoreBlur) {
-      // a control inside the pending event was just interacted with (mousedown),
-      // ignore this blur — the control will handle the interaction.
-      // Reset flag on next tick.
-      setTimeout(() => (this._ignoreBlur = false), 0);
-      return;
-    }
+  onDocumentMouseDown(event: MouseEvent) {
+    if (!this.pendingEvent()) return;
 
-    // If color palette is open, don't confirm the event
-    if (this.colorPaletteOpen()) {
-      return;
-    }
+    const target = event.target as HTMLElement;
+    const isClickInsidePendingEvent = target.closest('.event.pending');
+    const isClickInsideColorPalette = target.closest('.color-palette-dropdown');
 
-    const active = document.activeElement as HTMLElement | null;
-    const inputEl = this.eventInput && this.eventInput() && this.eventInput()!.nativeElement;
-
-    // If focus moved to an element inside the pending event (for example the
-    // color picker) we should not confirm the event. Check whether the active
-    // element is contained in the pending `.event.pending` container.
-    const movedInsidePending = !!(active && active.closest && active.closest('.event.pending'));
-
-    if (!inputEl || active !== inputEl) {
-      if (movedInsidePending) {
-        // focus moved to a control inside the pending event (color picker etc.)
-        return;
-      }
-
-      // input not focused and focus didn't move inside pending — confirm
+    if (!isClickInsidePendingEvent && !isClickInsideColorPalette) {
       this.confirmEventCreation();
     }
   }
@@ -247,21 +227,6 @@ export class WeekCalendarComponent implements AfterViewInit {
       style: { ...pending.style, backgroundColor: color, borderColor: color },
     };
     this.pendingEvent.set(updated);
-  }
-
-  toggleColorPalette() {
-    if (!this.colorPaletteOpen()) {
-      // Find the color picker button to position the palette next to it
-      const button = document.querySelector('.color-picker-button') as HTMLElement;
-      if (button) {
-        const rect = button.getBoundingClientRect();
-        this.colorPickerButtonPosition.set({
-          top: `${rect.bottom + 4}px`,
-          left: `${rect.left}px`,
-        });
-      }
-    }
-    this.colorPaletteOpen.set(!this.colorPaletteOpen());
   }
 
   confirmEventCreation() {
