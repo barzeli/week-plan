@@ -10,19 +10,7 @@
       [attr.aria-label]="'Color: ' + color"
     >
       @if (selectedColor() === color) {
-        <svg
-          width="16"
-          height="16"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="3"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-          class="check-icon"
-        >
-          <polyline points="20 6 9 17 4 12"></polyline>
-        </svg>
+        <span class="material-symbols-outlined check-icon">check</span>
       }
     </button>
   }

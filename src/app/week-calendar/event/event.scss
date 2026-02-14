@@ -82,6 +82,10 @@ $event-font-family: 'Inter', sans-serif;
     &.delete-btn:hover {
       color: #ef4444;
     }
+
+    .material-symbols-outlined {
+      font-size: 16px;
+    }
   }
 
   .event-time {

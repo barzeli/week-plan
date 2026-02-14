@@ -94,6 +94,8 @@ export class WeekCalendarComponent implements AfterViewInit {
   }
 
   onDragStart(day: string, hour: string) {
+    if (this.isCellOccupied(day, hour)) return;
+
     // If there's an event being edited without a title, remove it
     this.events.update(prev => prev.filter(e => !e.isEditing || e.title.trim() !== ''));
 
@@ -134,8 +136,26 @@ export class WeekCalendarComponent implements AfterViewInit {
 
   onDragOver(day: string, hour: string) {
     if (this.isDragging && this.selectionStartCell && this.selectionStartCell.day === day) {
-      this.selectionEndCell = { day, hour };
-      this.updateSelectedCells();
+      const startHour = this.selectionStartCell.hour;
+      const hours = this.hours();
+      const startIdx = hours.indexOf(startHour);
+      const endIdx = hours.indexOf(hour);
+
+      const minIdx = Math.min(startIdx, endIdx);
+      const maxIdx = Math.max(startIdx, endIdx);
+
+      let isClear = true;
+      for (let i = minIdx; i <= maxIdx; i++) {
+        if (this.isCellOccupied(day, hours[i])) {
+          isClear = false;
+          break;
+        }
+      }
+
+      if (isClear) {
+        this.selectionEndCell = { day, hour };
+        this.updateSelectedCells();
+      }
     }
   }
 
@@ -240,5 +260,17 @@ export class WeekCalendarComponent implements AfterViewInit {
       }
     }
     this.selectedCellMap.set(newSelectedCellMap);
+  }
+
+  private isCellOccupied(day: string, hour: string): boolean {
+    const hourIndex = this.hours().indexOf(hour);
+    if (hourIndex === -1) return false;
+
+    return this.events().some(event => {
+      if (event.start.day !== day) return false;
+      const startIdx = this.hours().indexOf(event.start.hour);
+      const endIdx = this.hours().indexOf(event.end.hour);
+      return hourIndex >= startIdx && hourIndex <= endIdx;
+    });
   }
 }
