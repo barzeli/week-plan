@@ -19,19 +19,17 @@ describe('EventComponent', () => {
       width: '100px',
       height: '50px',
       backgroundColor: '#ffadad',
-    }
+    },
   };
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [EventComponent],
-      providers: [provideZonelessChangeDetection()]
-    })
-      .compileComponents();
+      providers: [provideZonelessChangeDetection()],
+    }).compileComponents();
 
     fixture = TestBed.createComponent(EventComponent);
     component = fixture.componentInstance;
-
 
     fixture.componentRef.setInput('event', mockEvent);
     fixture.detectChanges();
@@ -52,7 +50,7 @@ describe('EventComponent', () => {
 
   it('should emit edit event on button click', () => {
     let emitted = false;
-    component.edit.subscribe(() => emitted = true);
+    component.edit.subscribe(() => (emitted = true));
 
     const editButton = fixture.nativeElement.querySelector('.edit-button');
     expect(editButton).toBeTruthy();

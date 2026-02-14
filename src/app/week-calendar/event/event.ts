@@ -1,4 +1,13 @@
-import { Component, input, output, signal, ElementRef, viewChild, effect, computed } from '@angular/core';
+import {
+  Component,
+  input,
+  output,
+  signal,
+  ElementRef,
+  viewChild,
+  effect,
+  computed,
+} from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { CalendarEvent } from '../week-calendar';
 import { ColorPickerComponent } from '../color-picker/color-picker';
@@ -12,7 +21,7 @@ import { ColorPickerComponent } from '../color-picker/color-picker';
   host: {
     '[style]': 'event().style',
     '(dblclick)': 'onDblClick($event)',
-  }
+  },
 })
 export class EventComponent {
   event = input.required<CalendarEvent>();
@@ -39,7 +48,6 @@ export class EventComponent {
     e.stopPropagation();
     this.localEditing.set(true);
   }
-
 
   onDelete(e: MouseEvent) {
     e.stopPropagation();

@@ -9,9 +9,8 @@ describe('WeekCalendarComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [WeekCalendarComponent],
-      providers: [provideZonelessChangeDetection()]
-    })
-      .compileComponents();
+      providers: [provideZonelessChangeDetection()],
+    }).compileComponents();
 
     fixture = TestBed.createComponent(WeekCalendarComponent);
     component = fixture.componentInstance;
@@ -32,23 +31,18 @@ describe('WeekCalendarComponent', () => {
 
   it('should render the time slots', () => {
     const compiled = fixture.nativeElement as HTMLElement;
-    
+
     fixture.detectChanges();
 
-    
-    
     const expectedSlots = 63;
 
-    
     expect(component.hours().length).toBe(expectedSlots);
 
-    
-    
     const timeSlots = compiled.querySelectorAll('.time-slot');
 
     expect(timeSlots.length).toBe(expectedSlots);
     expect(timeSlots[0].textContent).toContain('08:30');
-    
+
     expect(timeSlots[expectedSlots - 1].textContent).toContain('00:00');
   });
 });
