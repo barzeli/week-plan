@@ -1,14 +1,15 @@
-$event-font-size: 13px;
+$event-font-size: 12px;
+$event-font-family: 'Inter', sans-serif;
 
 :host {
-  line-height: normal;
+  line-height: 1.2;
   border: none !important;
   border-radius: 6px;
   font-size: $event-font-size;
-  font-family: 'Inter', sans-serif;
+  font-family: $event-font-family;
   font-weight: 500;
   cursor: pointer;
-  overflow: visible; // Changed from hidden to allow color picker to show
+  overflow: visible;
   color: #1a1a1a;
   pointer-events: auto;
   box-shadow:
@@ -114,8 +115,6 @@ $event-font-size: 13px;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    font-size: 12px;
-    line-height: 1.2;
     margin: 0;
   }
 
@@ -124,7 +123,7 @@ $event-font-size: 13px;
     border: none;
     border-radius: 4px;
     padding: 2px 4px;
-    font-size: 12px;
+    font-size: inherit;
     color: #1a1a1a;
     font-weight: 700;
     outline: none;

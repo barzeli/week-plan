@@ -18,7 +18,6 @@ export class EventComponent {
   event = input.required<CalendarEvent>();
   isEditing = input<boolean>(false);
 
-  edit = output<MouseEvent>();
   delete = output<MouseEvent>();
   confirm = output<void>();
 
@@ -41,11 +40,6 @@ export class EventComponent {
     this.localEditing.set(true);
   }
 
-  onEdit(e: MouseEvent) {
-    e.stopPropagation();
-    this.localEditing.set(true);
-    this.edit.emit(e);
-  }
 
   onDelete(e: MouseEvent) {
     e.stopPropagation();

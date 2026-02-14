@@ -1,7 +1,6 @@
-import { Component, computed, effect, ElementRef, input, signal, viewChild, AfterViewInit } from '@angular/core';
+import { Component, computed, ElementRef, input, signal, viewChild, AfterViewInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { ColorPickerComponent } from './color-picker/color-picker';
-import { EventComponent } from './event/event'; // Correct import will be added later
+import { EventComponent } from './event/event';
 
 export interface CalendarCell {
   day: string;
@@ -18,7 +17,6 @@ export interface CalendarEvent {
   isEditing?: boolean;
 }
 
-export type PendingEvent = Omit<CalendarEvent, 'title'>;
 
 
 @Component({
@@ -30,12 +28,10 @@ export type PendingEvent = Omit<CalendarEvent, 'title'>;
     '(document:mousemove)': 'onDocumentMouseMove($event)',
     '(document:mouseup)': 'onDocumentMouseUp()',
     '(window:resize)': 'onResize()',
-    '(document:mousedown)': 'onDocumentMouseDown($event)',
-    '(document:keydown.escape)': 'onEscape()',
+    '(document:keydown.escape)': 'resetDragState()',
   },
 })
 export class WeekCalendarComponent implements AfterViewInit {
-  isOpen = false;
 
   startHour = input(8);
   startMinute = input(30);
@@ -108,12 +104,6 @@ export class WeekCalendarComponent implements AfterViewInit {
     this.updateSelectedCells();
   }
 
-  onEscape() {
-    if (this.isOpen) {
-      this.isOpen = false;
-      return;
-    }
-  }
 
   deleteEvent(event: CalendarEvent) {
     this.events.update(prev => prev.filter(e => e !== event));
@@ -179,10 +169,8 @@ export class WeekCalendarComponent implements AfterViewInit {
       isEditing: true,
       displayTime: this.getEventTimeRange({
         start: { day: startDay, hour: this.hours()[minHourIndex] },
-        end: { day: startDay, hour: this.hours()[maxHourIndex] },
-        color: defaultColor,
-        style: {}
-      }),
+        end: { day: startDay, hour: this.hours()[maxHourIndex] }
+      } as any),
       style: {
         top: `${this.headerHeight + minHourIndex * this.cellHeight}px`,
         right: `${startDayIndex * this.dayWidth()}px`,
@@ -197,15 +185,13 @@ export class WeekCalendarComponent implements AfterViewInit {
     this.events.update(prev => [...prev, newEvent]);
   }
 
-  private resetDragState() {
+  protected resetDragState() {
     this.isDragging = false;
     this.selectionStartCell = null;
     this.selectionEndCell = null;
     this.selectedCellMap.set(new Map());
   }
 
-  onDocumentMouseDown(event: MouseEvent) {
-  }
 
   confirmEvent(event: CalendarEvent) {
     if (!event.title.trim()) {
@@ -215,7 +201,7 @@ export class WeekCalendarComponent implements AfterViewInit {
     }
   }
 
-  getEventTimeRange(event: CalendarEvent | PendingEvent): string {
+  getEventTimeRange(event: CalendarEvent): string {
     const start = event.start.hour;
     const endSlotStart = event.end.hour;
 
