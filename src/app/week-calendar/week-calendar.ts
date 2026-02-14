@@ -1,35 +1,30 @@
-import { CdkConnectedOverlay, CdkOverlayOrigin, OverlayModule } from '@angular/cdk/overlay';
-import {
-  Component,
-  computed,
-  input,
-  ElementRef,
-  viewChild,
-  AfterViewInit,
-  signal,
-  effect,
-} from '@angular/core';
+import { Component, computed, effect, ElementRef, input, signal, viewChild, AfterViewInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ColorPickerComponent } from './color-picker/color-picker';
+import { OverlayModule } from '@angular/cdk/overlay';
+import { CdkConnectedOverlay, CdkOverlayOrigin } from '@angular/cdk/overlay';
+import { EventComponent } from './event/event'; // Correct import will be added later
 
-interface CalendarCell {
+export interface CalendarCell {
   day: string;
   hour: string;
 }
 
-interface CalendarEvent {
+export interface CalendarEvent {
   start: { day: string; hour: string };
   end: { day: string; hour: string };
   title: string;
   style: { [key: string]: string };
   displayTime?: string;
+  color: string;
 }
 
-type PendingEvent = Omit<CalendarEvent, 'title'>;
+export type PendingEvent = Omit<CalendarEvent, 'title'>;
+
 
 @Component({
   selector: 'app-week-calendar',
-  imports: [FormsModule, OverlayModule, CdkOverlayOrigin, CdkConnectedOverlay, ColorPickerComponent],
+  imports: [FormsModule, OverlayModule, CdkOverlayOrigin, CdkConnectedOverlay, ColorPickerComponent, EventComponent],
   templateUrl: './week-calendar.html',
   styleUrls: ['./week-calendar.scss'],
   host: {
@@ -37,6 +32,7 @@ type PendingEvent = Omit<CalendarEvent, 'title'>;
     '(document:mouseup)': 'onDocumentMouseUp()',
     '(window:resize)': 'onResize()',
     '(document:mousedown)': 'onDocumentMouseDown($event)',
+    '(document:keydown.escape)': 'onEscape()',
   },
 })
 export class WeekCalendarComponent implements AfterViewInit {
@@ -80,6 +76,8 @@ export class WeekCalendarComponent implements AfterViewInit {
   newEventTitle = signal('');
   newEventColor = signal('#a0c4ff');
 
+  editingEvent = signal<CalendarEvent | null>(null);
+
   calendarContainer = viewChild.required<ElementRef<HTMLDivElement>>('calendarContainer');
   eventInput = viewChild<ElementRef<HTMLInputElement>>('eventInput');
 
@@ -112,15 +110,55 @@ export class WeekCalendarComponent implements AfterViewInit {
   }
 
   onDragStart(day: string, hour: string) {
-    // If there's already a pending event being named, don't start a new selection.
-    // This prevents creating a second pending event when the user clicks while
-    // naming an existing pending event (e.g. blur caused by a click).
-    if (this.pendingEvent()) return;
-
+    // We now allow dragging even if pendingEvent exists, to "move" or "resize" the time of the pending event.
     this.isDragging = true;
     this.selectionStartCell = { day, hour };
     this.selectionEndCell = { day, hour };
     this.updateSelectedCells();
+  }
+
+  editEvent(event: CalendarEvent, mouseEvent: Event) {
+    mouseEvent.stopPropagation();
+
+    // If we are already editing another event, confirm it first?
+    if (this.pendingEvent()) {
+      this.confirmEventCreation();
+    }
+
+    // Capture the event being edited (don't remove it yet)
+    this.editingEvent.set(event);
+
+    // Set state
+    this.newEventTitle.set(event.title);
+    this.newEventColor.set(event.color);
+
+    // Set pending event from the existing event data
+    const { title, ...rest } = event;
+    this.pendingEvent.set(rest);
+  }
+
+  onEscape() {
+    if (this.isOpen) {
+      this.isOpen = false;
+      return;
+    }
+    if (this.pendingEvent()) {
+      this.cancelEdit();
+    }
+  }
+
+  cancelEdit() {
+    this.pendingEvent.set(null);
+    this.editingEvent.set(null);
+    this.newEventTitle.set('');
+    this.newEventColor.set('#a0c4ff');
+  }
+
+  deleteEvent(event: CalendarEvent) {
+    this.events = this.events.filter(e => e !== event);
+    if (this.editingEvent() === event) {
+      this.cancelEdit();
+    }
   }
 
   onDocumentMouseMove(event: MouseEvent) {
@@ -175,9 +213,12 @@ export class WeekCalendarComponent implements AfterViewInit {
     const maxHourIndex = Math.max(startHourIndex, endHourIndex);
 
     const color = this.newEventColor();
+    // We preserve existing properties (like if there were any others) but here we reconstruct.
+    // Importantly, newEventTitle is separate so it's preserved.
     this.pendingEvent.set({
       start: { day: startDay, hour: this.hours()[minHourIndex] },
       end: { day: startDay, hour: this.hours()[maxHourIndex] },
+      color: color,
       style: {
         top: `${this.headerHeight + minHourIndex * this.cellHeight}px`,
         right: `${startDayIndex * this.dayWidth()}px`,
@@ -202,22 +243,12 @@ export class WeekCalendarComponent implements AfterViewInit {
 
     const target = event.target as HTMLElement;
     const isClickInsidePendingEvent = target.closest('.event.pending');
-    // const isClickInsideColorPalette = target.closest('.color-palette-dropdown'); // No longer needed directly, overlay handles outside clicks
-    // But wait, the overlay is distinct. If we click the overlay, it's inside the overlay container.
-    // The overlay directive `(overlayOutsideClick)` handles closing.
-    // We just need to ensure `confirmEventCreation` isn't called if we click the color picker button or the overlay itself.
-    // Actually, `confirmEventCreation` is called when clicking *outside* the pending event AND outside the color palette.
-    // If we click the color picker, it opens.
-
-    // We can rely on `cdkOverlayOrigin` and overlay interaction.
-    // Let's simplified check: if click is NOT on pending event, try to confirm.
-    // But if we click on the color picker button (inside pending event), it's fine.
-    // If we click on the overlay (which is separate in DOM), `confirmEventCreation` might be triggered because target is in overlay container, not pending event.
-    // We need to check if target is inside `.cdk-overlay-container`.
-
     const isClickInsideOverlay = target.closest('.cdk-overlay-container');
+    const isClickCalendarCell = target.closest('.calendar-cell');
 
-    if (!isClickInsidePendingEvent && !isClickInsideOverlay) {
+    // If we click a calendar cell, we are likely starting a drag to update time,
+    // so DO NOT confirm/close the pending event.
+    if (!isClickInsidePendingEvent && !isClickInsideOverlay && !isClickCalendarCell) {
       this.confirmEventCreation();
     }
   }
@@ -229,6 +260,7 @@ export class WeekCalendarComponent implements AfterViewInit {
     const color = this.newEventColor();
     const updated = {
       ...pending,
+      color: color,
       style: {
         ...pending.style,
         backgroundColor: color,
@@ -246,6 +278,7 @@ export class WeekCalendarComponent implements AfterViewInit {
     if (!pending) return;
     const updated = {
       ...pending,
+      color: color,
       style: {
         ...pending.style,
         backgroundColor: color,
@@ -254,6 +287,7 @@ export class WeekCalendarComponent implements AfterViewInit {
       },
     };
     this.pendingEvent.set(updated);
+    this.isOpen = false; // Close picker on selection
   }
 
   confirmEventCreation() {
@@ -261,10 +295,19 @@ export class WeekCalendarComponent implements AfterViewInit {
     const pending = this.pendingEvent();
     if (title && pending) {
       const displayTime = this.getEventTimeRange(pending);
-      this.events.push({ ...pending, title, displayTime });
+      const color = this.newEventColor();
+      const newEvent = { ...pending, title, displayTime, color };
+
+      const editing = this.editingEvent();
+      if (editing) {
+        // Replace existing
+        this.events = this.events.map(e => e === editing ? newEvent : e);
+      } else {
+        // Create new
+        this.events = [...this.events, newEvent];
+      }
     }
-    this.newEventTitle.set('');
-    this.pendingEvent.set(null);
+    this.cancelEdit(); // Clears state
   }
 
   getEventTimeRange(event: CalendarEvent | PendingEvent): string {
@@ -282,7 +325,7 @@ export class WeekCalendarComponent implements AfterViewInit {
       endMinute -= 60;
       endHour += 1;
     }
-    // Handle midnight wrap-around if needed, though day logic handles days
+    // Handle midnight wrap-around if needed
     if (endHour >= 24) endHour = 0;
 
     const formattedEnd = `${String(endHour).padStart(2, '0')}:${String(endMinute).padStart(2, '0')}`;

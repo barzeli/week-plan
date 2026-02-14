@@ -28,10 +28,13 @@
   }
   <div class="events-container">
     @for (event of events; track $index) {
-      <div class="event" [style]="event.style">
-        <div class="event-time">{{ event.displayTime }}</div>
-        <div class="event-title">{{ event.title }}</div>
-      </div>
+      <app-event
+        class="event"
+        [event]="event"
+        (edit)="editEvent(event, $event)"
+        (delete)="deleteEvent(event)"
+        [class.hidden]="editingEvent() === event"
+      ></app-event>
     }
     @if (pendingEvent(); as pending) {
       <div class="event pending" [style]="pending.style">
@@ -41,7 +44,7 @@
             type="text"
             [(ngModel)]="newEventTitle"
             (keydown.enter)="confirmEventCreation()"
-            (keydown.escape)="pendingEvent.set(null)"
+            (keydown.escape)="cancelEdit()"
             placeholder="כותרת..."
           />
           <button
