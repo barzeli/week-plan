@@ -11,7 +11,7 @@ describe('WeekCalendarComponent', () => {
       imports: [WeekCalendarComponent],
       providers: [provideZonelessChangeDetection()]
     })
-    .compileComponents();
+      .compileComponents();
 
     fixture = TestBed.createComponent(WeekCalendarComponent);
     component = fixture.componentInstance;
@@ -26,16 +26,29 @@ describe('WeekCalendarComponent', () => {
     const compiled = fixture.nativeElement as HTMLElement;
     const dayHeaders = compiled.querySelectorAll('.day-header');
     expect(dayHeaders.length).toBe(7);
-    expect(dayHeaders[0].textContent).toContain('Monday');
-    expect(dayHeaders[6].textContent).toContain('Sunday');
+    expect(dayHeaders[0].textContent).toContain('ראשון');
+    expect(dayHeaders[6].textContent).toContain('שבת');
   });
 
   it('should render the time slots', () => {
     const compiled = fixture.nativeElement as HTMLElement;
+    // Force change detection to ensure computed signals are processed (though fixture.detectChanges() should handle it)
+    fixture.detectChanges();
+
+    // Default range is 08:30 to 24:00
+    // (1440 - 510) / 15 + 1 = 62 + 1 = 63 slots
+    const expectedSlots = 63;
+
+    // Check if the signal computed the correct number of hours
+    expect(component.hours().length).toBe(expectedSlots);
+
+    // In the DOM, time slots are rendered per row.
+    // Each row has one .time-slot div. The rest are .calendar-cell divs.
     const timeSlots = compiled.querySelectorAll('.time-slot');
-    // 24 hours * 4 slots per hour = 96
-    expect(timeSlots.length).toBe(96);
-    expect(timeSlots[0].textContent).toContain('00:00');
-    expect(timeSlots[95].textContent).toContain('23:45');
+
+    expect(timeSlots.length).toBe(expectedSlots);
+    expect(timeSlots[0].textContent).toContain('08:30');
+    // The last slot is 24:00 which is formatted as 00:00
+    expect(timeSlots[expectedSlots - 1].textContent).toContain('00:00');
   });
 });
