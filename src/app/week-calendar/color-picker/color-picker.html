@@ -1,0 +1,29 @@
+<div class="color-picker-container">
+  @for (color of colorPalette; track color) {
+    <button
+      type="button"
+      class="palette-color"
+      [style.background]="color"
+      [class.active]="selectedColor() === color"
+      (click)="selectColor(color); $event.stopPropagation()"
+      [attr.title]="'Color: ' + color"
+      [attr.aria-label]="'Color: ' + color"
+    >
+      @if (selectedColor() === color) {
+        <svg
+          width="16"
+          height="16"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="3"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          class="check-icon"
+        >
+          <polyline points="20 6 9 17 4 12"></polyline>
+        </svg>
+      }
+    </button>
+  }
+</div>

@@ -7,69 +7,65 @@
   <div class="header-row">
     <div class="time-slot-header" [style.height.px]="headerHeight"></div>
     @for (day of days; track $index) {
-    <div class="day-header" [style.height.px]="headerHeight">{{ day }}</div>
+      <div class="day-header" [style.height.px]="headerHeight">{{ day }}</div>
     }
   </div>
   @for (hour of hours(); track $index) {
-  <div class="calendar-row">
-    <div class="time-slot">{{ hour }}</div>
-    @for (day of days; track $index) {
-    <div
-      class="calendar-cell"
-      [class.selected]="selectedCellMap().has(day + '-' + hour)"
-      [style.height.px]="cellHeight"
-      (mousedown)="onDragStart(day, hour)"
-      (mouseenter)="onDragOver(day, hour)"
-      [attr.data-day]="day"
-      [attr.data-hour]="hour"
-    ></div>
-    }
-  </div>
+    <div class="calendar-row">
+      <div class="time-slot">{{ hour }}</div>
+      @for (day of days; track $index) {
+        <div
+          class="calendar-cell"
+          [class.selected]="selectedCellMap().has(day + '-' + hour)"
+          [style.height.px]="cellHeight"
+          (mousedown)="onDragStart(day, hour)"
+          (mouseenter)="onDragOver(day, hour)"
+          [attr.data-day]="day"
+          [attr.data-hour]="hour"
+        ></div>
+      }
+    </div>
   }
   <div class="events-container">
     @for (event of events; track $index) {
-    <div class="event" [style]="event.style">{{ event.title }}</div>
-    } @if (pendingEvent(); as pending) {
-    <div class="event pending" [style]="pending.style">
-      <div class="pending-top">
-        <input
-          #eventInput
-          type="text"
-          [(ngModel)]="newEventTitle"
-          (keydown.enter)="confirmEventCreation()"
-          (keydown.escape)="pendingEvent.set(null)"
-          placeholder="כותרת..."
-        />
-        <button
-          type="button"
-          class="color-picker-button"
-          cdkOverlayOrigin
-          #colorPickerButton="cdkOverlayOrigin"
-          [style.background]="newEventColor()"
-          (click)="isOpen = !isOpen"
-        ></button>
-
-        <ng-template
-          cdkConnectedOverlay
-          [cdkConnectedOverlayOrigin]="colorPickerButton"
-          [cdkConnectedOverlayOpen]="isOpen"
-        >
-          <div class="color-palette-dropdown">
-            @for (color of colorPalette; track color) {
-            <button
-              type="button"
-              class="palette-color"
-              [style.background]="color"
-              [class.active]="newEventColor() === color"
-              (click)="setEventColor(color); $event.stopPropagation()"
-              [attr.title]="'Color: ' + color"
-              [attr.aria-label]="'Color: ' + color"
-            ></button>
-            }
-          </div>
-        </ng-template>
+      <div class="event" [style]="event.style">
+        <div class="event-time">{{ event.displayTime }}</div>
+        <div class="event-title">{{ event.title }}</div>
       </div>
-    </div>
+    }
+    @if (pendingEvent(); as pending) {
+      <div class="event pending" [style]="pending.style">
+        <div class="pending-top">
+          <input
+            #eventInput
+            type="text"
+            [(ngModel)]="newEventTitle"
+            (keydown.enter)="confirmEventCreation()"
+            (keydown.escape)="pendingEvent.set(null)"
+            placeholder="כותרת..."
+          />
+          <button
+            type="button"
+            class="color-picker-button"
+            cdkOverlayOrigin
+            #colorPickerButton="cdkOverlayOrigin"
+            [style.background]="newEventColor()"
+            (click)="isOpen = !isOpen"
+          ></button>
+
+          <ng-template
+            cdkConnectedOverlay
+            [cdkConnectedOverlayOrigin]="colorPickerButton"
+            [cdkConnectedOverlayOpen]="isOpen"
+            (overlayOutsideClick)="isOpen = false"
+          >
+            <app-color-picker
+              [selectedColor]="newEventColor()"
+              (colorSelected)="setEventColor($event)"
+            ></app-color-picker>
+          </ng-template>
+        </div>
+      </div>
     }
   </div>
 </div>

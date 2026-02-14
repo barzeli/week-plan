@@ -1,0 +1,85 @@
+:host {
+  display: block; // Ensures the component has size for the overlay content
+}
+
+.color-picker-container {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  padding: 16px;
+  background: white;
+  border: 1px solid rgba(0, 0, 0, 0.08); // Subtle border
+  border-radius: 16px;
+  box-shadow:
+    0 4px 24px rgba(0, 0, 0, 0.12),
+    0 2px 8px rgba(0, 0, 0, 0.04);
+  animation: dropdownFadeIn 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
+  transform-origin: top center;
+  pointer-events: auto;
+}
+
+.palette-color {
+  width: 36px;
+  height: 36px;
+  border: 2px solid rgba(0, 0, 0, 0.05);
+  border-radius: 50%;
+  padding: 0;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  outline: none;
+  background-clip: padding-box; // Helps with rendering
+
+  &:hover {
+    transform: scale(1.15);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    border-color: transparent;
+    z-index: 2;
+  }
+
+  &.active {
+    transform: scale(1.1);
+    box-shadow:
+      0 0 0 2px white,
+      0 0 0 4px #333;
+    border-color: white;
+    z-index: 1;
+  }
+
+  .check-icon {
+    color: rgba(0, 0, 0, 0.65);
+    width: 16px;
+    height: 16px;
+    stroke-width: 3px;
+    animation: checkPop 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+}
+
+@keyframes dropdownFadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes checkPop {
+  0% {
+    transform: scale(0);
+    opacity: 0;
+  }
+  60% {
+    transform: scale(1.2);
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}

@@ -10,6 +10,7 @@ import {
   effect,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { ColorPickerComponent } from './color-picker/color-picker';
 
 interface CalendarCell {
   day: string;
@@ -21,13 +22,14 @@ interface CalendarEvent {
   end: { day: string; hour: string };
   title: string;
   style: { [key: string]: string };
+  displayTime?: string;
 }
 
 type PendingEvent = Omit<CalendarEvent, 'title'>;
 
 @Component({
   selector: 'app-week-calendar',
-  imports: [FormsModule, OverlayModule, CdkOverlayOrigin, CdkConnectedOverlay],
+  imports: [FormsModule, OverlayModule, CdkOverlayOrigin, CdkConnectedOverlay, ColorPickerComponent],
   templateUrl: './week-calendar.html',
   styleUrls: ['./week-calendar.scss'],
   host: {
@@ -46,8 +48,6 @@ export class WeekCalendarComponent implements AfterViewInit {
   endMinute = input(0);
 
   days = ['ראשון', 'שני', 'שלישי', 'רביעי', 'חמישי', 'שישי', 'שבת'];
-
-  colorPalette = ['#add8e6', '#ffcccc', '#ccffcc', '#ffffcc', '#e6ccff', '#ffccff', '#ccffff'];
 
   hours = computed(() => {
     const startTimeInMinutes = this.startHour() * 60 + this.startMinute();
@@ -78,7 +78,7 @@ export class WeekCalendarComponent implements AfterViewInit {
   selectedCellMap = signal<Map<string, boolean>>(new Map());
   pendingEvent = signal<PendingEvent | null>(null);
   newEventTitle = signal('');
-  newEventColor = signal('#add8e6');
+  newEventColor = signal('#a0c4ff');
 
   calendarContainer = viewChild.required<ElementRef<HTMLDivElement>>('calendarContainer');
   eventInput = viewChild<ElementRef<HTMLInputElement>>('eventInput');
@@ -174,6 +174,7 @@ export class WeekCalendarComponent implements AfterViewInit {
     const minHourIndex = Math.min(startHourIndex, endHourIndex);
     const maxHourIndex = Math.max(startHourIndex, endHourIndex);
 
+    const color = this.newEventColor();
     this.pendingEvent.set({
       start: { day: startDay, hour: this.hours()[minHourIndex] },
       end: { day: startDay, hour: this.hours()[maxHourIndex] },
@@ -182,8 +183,9 @@ export class WeekCalendarComponent implements AfterViewInit {
         right: `${startDayIndex * this.dayWidth()}px`,
         width: `${this.dayWidth()}px`,
         height: `${(maxHourIndex - minHourIndex + 1) * this.cellHeight}px`,
-        backgroundColor: this.newEventColor(),
-        borderColor: this.newEventColor(),
+        backgroundColor: color,
+        borderColor: color,
+        '--event-color': color,
       },
     });
   }
@@ -200,22 +202,42 @@ export class WeekCalendarComponent implements AfterViewInit {
 
     const target = event.target as HTMLElement;
     const isClickInsidePendingEvent = target.closest('.event.pending');
-    const isClickInsideColorPalette = target.closest('.color-palette-dropdown');
+    // const isClickInsideColorPalette = target.closest('.color-palette-dropdown'); // No longer needed directly, overlay handles outside clicks
+    // But wait, the overlay is distinct. If we click the overlay, it's inside the overlay container.
+    // The overlay directive `(overlayOutsideClick)` handles closing.
+    // We just need to ensure `confirmEventCreation` isn't called if we click the color picker button or the overlay itself.
+    // Actually, `confirmEventCreation` is called when clicking *outside* the pending event AND outside the color palette.
+    // If we click the color picker, it opens.
 
-    if (!isClickInsidePendingEvent && !isClickInsideColorPalette) {
+    // We can rely on `cdkOverlayOrigin` and overlay interaction.
+    // Let's simplified check: if click is NOT on pending event, try to confirm.
+    // But if we click on the color picker button (inside pending event), it's fine.
+    // If we click on the overlay (which is separate in DOM), `confirmEventCreation` might be triggered because target is in overlay container, not pending event.
+    // We need to check if target is inside `.cdk-overlay-container`.
+
+    const isClickInsideOverlay = target.closest('.cdk-overlay-container');
+
+    if (!isClickInsidePendingEvent && !isClickInsideOverlay) {
       this.confirmEventCreation();
     }
   }
 
   onColorChange() {
+    // This might not be needed if setEventColor does the job directly
     const pending = this.pendingEvent();
     if (!pending) return;
     const color = this.newEventColor();
     const updated = {
       ...pending,
-      style: { ...pending.style, backgroundColor: color, borderColor: color },
+      style: {
+        ...pending.style,
+        backgroundColor: color,
+        borderColor: color,
+        '--event-color': color,
+      },
     };
     this.pendingEvent.set(updated);
+    this.isOpen = false; // Close picker on selection
   }
 
   setEventColor(color: string) {
@@ -224,7 +246,12 @@ export class WeekCalendarComponent implements AfterViewInit {
     if (!pending) return;
     const updated = {
       ...pending,
-      style: { ...pending.style, backgroundColor: color, borderColor: color },
+      style: {
+        ...pending.style,
+        backgroundColor: color,
+        borderColor: color,
+        '--event-color': color,
+      },
     };
     this.pendingEvent.set(updated);
   }
@@ -233,10 +260,33 @@ export class WeekCalendarComponent implements AfterViewInit {
     const title = this.newEventTitle().trim();
     const pending = this.pendingEvent();
     if (title && pending) {
-      this.events.push({ ...pending, title });
+      const displayTime = this.getEventTimeRange(pending);
+      this.events.push({ ...pending, title, displayTime });
     }
     this.newEventTitle.set('');
     this.pendingEvent.set(null);
+  }
+
+  getEventTimeRange(event: CalendarEvent | PendingEvent): string {
+    const start = event.start.hour;
+    const endSlotStart = event.end.hour;
+
+    // Parse end slot start time
+    const [endHourStr, endMinuteStr] = endSlotStart.split(':');
+    let endHour = parseInt(endHourStr, 10);
+    let endMinute = parseInt(endMinuteStr, 10);
+
+    // Add 15 minutes to get the actual end time
+    endMinute += 15;
+    if (endMinute >= 60) {
+      endMinute -= 60;
+      endHour += 1;
+    }
+    // Handle midnight wrap-around if needed, though day logic handles days
+    if (endHour >= 24) endHour = 0;
+
+    const formattedEnd = `${String(endHour).padStart(2, '0')}:${String(endMinute).padStart(2, '0')}`;
+    return `${start} - ${formattedEnd}`;
   }
 
   private updateSelectedCells() {
