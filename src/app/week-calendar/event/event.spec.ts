@@ -32,7 +32,7 @@ describe('EventComponent', () => {
     fixture = TestBed.createComponent(EventComponent);
     component = fixture.componentInstance;
 
-    // Set input
+
     fixture.componentRef.setInput('event', mockEvent);
     fixture.detectChanges();
   });
@@ -53,11 +53,6 @@ describe('EventComponent', () => {
   it('should emit edit event on button click', () => {
     let emitted = false;
     component.edit.subscribe(() => emitted = true);
-
-    // Simulate hover to show button (though in tests we can click it directly if it exists)
-    // The button might be hidden by CSS (display: none) but present in DOM
-    // Actually, .edit-button is display: none by default in CSS, but fixture queries ignore CSS visibility unless checking computed style.
-    // However, click() usually works on elements in the DOM.
 
     const editButton = fixture.nativeElement.querySelector('.edit-button');
     expect(editButton).toBeTruthy();

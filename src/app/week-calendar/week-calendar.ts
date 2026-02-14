@@ -69,8 +69,8 @@ export class WeekCalendarComponent {
   calendarContainer = viewChild.required<ElementRef<HTMLDivElement>>('calendarContainer');
 
   protected headerHeight = 40;
-  protected cellHeight = 50; // Adjusted for 30-minute slots
-  private readonly slotDuration = 30; // Half-hour slots
+  protected cellHeight = 50;
+  private readonly slotDuration = 30;
 
   constructor() {
   }
@@ -78,7 +78,6 @@ export class WeekCalendarComponent {
   onDragStart(day: string, hour: string) {
     if (this.isCellOccupied(day, hour)) return;
 
-    // If there's an event being edited without a title, remove it
     this.events.update(prev => prev.filter(e => !e.isEditing || e.title.trim() !== ''));
 
     this.isDragging = true;
@@ -206,18 +205,15 @@ export class WeekCalendarComponent {
     const start = event.start.hour;
     const endSlotStart = event.end.hour;
 
-    // Parse end slot start time
     const [endHourStr, endMinuteStr] = endSlotStart.split(':');
     let endHour = parseInt(endHourStr, 10);
     let endMinute = parseInt(endMinuteStr, 10);
 
-    // Add slotDuration minutes to get the actual end time
     endMinute += this.slotDuration;
     if (endMinute >= 60) {
       endHour += Math.floor(endMinute / 60);
       endMinute = endMinute % 60;
     }
-    // Handle midnight wrap-around if needed
     if (endHour >= 24) endHour = endHour % 24;
 
     const formattedEnd = `${String(endHour).padStart(2, '0')}:${String(endMinute).padStart(2, '0')}`;

@@ -29,16 +29,13 @@ describe('ColorPickerComponent', () => {
 
     it('should mark selected color as active', () => {
         const testColor = component.colorPalette[0];
-        // Set input signal
+
         fixture.componentRef.setInput('selectedColor', testColor);
         fixture.detectChanges();
 
         const activeButton = fixture.nativeElement.querySelector('.palette-color.active');
         expect(activeButton).toBeTruthy();
-        // Verify style.background matches (might need rgb conversion check or strict equality if style allows)
-        // Actually, background style might be computed.
-        // Let's check if the button for that color has .active.
-        // We can assume the first button corresponds to the first color.
+
         const firstButton = fixture.nativeElement.querySelectorAll('button')[0];
         expect(firstButton.classList).toContain('active');
     });
