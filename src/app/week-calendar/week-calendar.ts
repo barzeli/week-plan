@@ -1,4 +1,4 @@
-import { Component, computed, ElementRef, input, signal, viewChild, AfterViewInit } from '@angular/core';
+import { Component, computed, ElementRef, input, signal, viewChild } from '@angular/core';
 import { EventComponent } from './event/event';
 
 export interface CalendarCell {
@@ -26,11 +26,10 @@ export interface CalendarEvent {
   host: {
     '(document:mousemove)': 'onDocumentMouseMove($event)',
     '(document:mouseup)': 'onDocumentMouseUp()',
-    '(window:resize)': 'onResize()',
     '(document:keydown.escape)': 'resetDragState()',
   },
 })
-export class WeekCalendarComponent implements AfterViewInit {
+export class WeekCalendarComponent {
 
   startHour = input(8);
   startMinute = input(30);
@@ -69,28 +68,11 @@ export class WeekCalendarComponent implements AfterViewInit {
 
   calendarContainer = viewChild.required<ElementRef<HTMLDivElement>>('calendarContainer');
 
-  dayWidth = signal(0);
   protected headerHeight = 40;
   protected cellHeight = 50; // Adjusted for 30-minute slots
-  protected timeSlotsColumnWidth = 60;
   private readonly slotDuration = 30; // Half-hour slots
 
   constructor() {
-  }
-
-  ngAfterViewInit() {
-    this.calculateDimensions();
-  }
-
-  onResize() {
-    this.calculateDimensions();
-  }
-
-  calculateDimensions() {
-    const container = this.calendarContainer().nativeElement;
-    if (container) {
-      this.dayWidth.set((container.offsetWidth - this.timeSlotsColumnWidth) / 7);
-    }
   }
 
   onDragStart(day: string, hour: string) {
@@ -192,8 +174,8 @@ export class WeekCalendarComponent implements AfterViewInit {
       } as any),
       style: {
         top: `${this.headerHeight + minHourIndex * this.cellHeight}px`,
-        right: `${startDayIndex * this.dayWidth()}px`,
-        width: `${this.dayWidth()}px`,
+        right: `${(startDayIndex * 100) / 7}%`,
+        width: `${100 / 7}%`,
         height: `${(maxHourIndex - minHourIndex + 1) * this.cellHeight}px`,
         backgroundColor: defaultColor,
         borderColor: defaultColor,
