@@ -33,42 +33,20 @@
         [event]="event"
         (edit)="editEvent(event, $event)"
         (delete)="deleteEvent(event)"
-        [class.hidden]="editingEvent() === event"
+        (titleChange)="updateEventTitle(event, $event)"
+        (colorChange)="updateEventColor(event, $event)"
       ></app-event>
     }
     @if (pendingEvent(); as pending) {
-      <div class="event pending" [style]="pending.style">
-        <div class="pending-top">
-          <input
-            #eventInput
-            type="text"
-            [(ngModel)]="newEventTitle"
-            (keydown.enter)="confirmEventCreation()"
-            (keydown.escape)="cancelEdit()"
-            placeholder="כותרת..."
-          />
-          <button
-            type="button"
-            class="color-picker-button"
-            cdkOverlayOrigin
-            #colorPickerButton="cdkOverlayOrigin"
-            [style.background]="newEventColor()"
-            (click)="isOpen = !isOpen"
-          ></button>
-
-          <ng-template
-            cdkConnectedOverlay
-            [cdkConnectedOverlayOrigin]="colorPickerButton"
-            [cdkConnectedOverlayOpen]="isOpen"
-            (overlayOutsideClick)="isOpen = false"
-          >
-            <app-color-picker
-              [selectedColor]="newEventColor()"
-              (colorSelected)="setEventColor($event)"
-            ></app-color-picker>
-          </ng-template>
-        </div>
-      </div>
+      <app-event
+        class="event"
+        [event]="pendingAsEvent(pending)"
+        [isPending]="true"
+        (titleChange)="newEventTitle.set($event)"
+        (colorChange)="setEventColor($event)"
+        (confirm)="confirmEventCreation()"
+        (delete)="cancelEdit()"
+      ></app-event>
     }
   </div>
 </div>

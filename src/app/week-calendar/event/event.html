@@ -1,5 +1,35 @@
-<div class="event-time">{{ event().displayTime }}</div>
-<div class="event-title">{{ event().title }}</div>
+<div class="event-header">
+  <div class="event-time">{{ event().displayTime }}</div>
+  <button
+    type="button"
+    class="color-picker-toggle"
+    [style.background]="event().color"
+    (click)="isOpen.set(!isOpen()); $event.stopPropagation()"
+  ></button>
+</div>
+
+@if (isEditing()) {
+  <input
+    #titleInput
+    type="text"
+    [ngModel]="event().title"
+    (ngModelChange)="titleChange.emit($event)"
+    (keydown)="onTitleKeyDown($event)"
+    (click)="$event.stopPropagation()"
+    placeholder="כותרת..."
+  />
+} @else {
+  <div class="event-title">{{ event().title }}</div>
+}
+
+@if (isOpen()) {
+  <div class="inline-color-picker" (click)="$event.stopPropagation()">
+    <app-color-picker
+      [selectedColor]="event().color"
+      (colorSelected)="onColorSelected($event)"
+    ></app-color-picker>
+  </div>
+}
 
 <div class="actions">
   <button class="action-btn delete-btn" (click)="onDelete($event)" title="Delete">

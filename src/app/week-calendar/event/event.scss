@@ -1,21 +1,15 @@
-// Variable definitions duplicated here or should be shared.
-// For now, hardcode or redefine.
 $event-font-size: 13px;
 
 :host {
-  /* keep text baseline same as when the input is present: top padding matches input height */
-  // Padding moved below to be closer to flex props
   line-height: normal;
-
-  // background-color is set via inline style on host
-  border: none !important; // Override inline border
+  border: none !important;
   border-radius: 6px;
   font-size: $event-font-size;
   font-family: 'Inter', sans-serif;
   font-weight: 500;
   cursor: pointer;
-  overflow: hidden;
-  color: #1a1a1a; // Darker text for contrast
+  overflow: visible; // Changed from hidden to allow color picker to show
+  color: #1a1a1a;
   pointer-events: auto;
   box-shadow:
     0 2px 4px rgba(0, 0, 0, 0.05),
@@ -24,26 +18,33 @@ $event-font-size: 13px;
     transform 0.1s ease,
     box-shadow 0.1s ease;
 
-  display: grid !important; // Force grid
-  align-content: start !important; // Align tracks to start (Top)
-  justify-items: start; // Align items to start (Right in RTL)
-  gap: 0; // No gap between time and title by default
+  display: flex !important;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0;
 
-  padding: 2px 10px 0 4px; // Tighter padding
-  box-sizing: border-box; // Ensure padding is included in width/height
+  padding: 4px 8px 4px 4px;
+  box-sizing: border-box;
+  position: absolute;
 
-  position: absolute; // It MUST be absolute to be positioned in the calendar
-
-  // Left accent border using pseudo-element
   &::before {
     content: '';
     position: absolute;
     top: 0;
-    right: 0; // RTL
+    right: 0;
     bottom: 0;
     width: 4px;
     background-color: var(--event-color);
-    filter: brightness(0.75) saturate(1.2); // Make it darker and richer than the bg
+    filter: brightness(0.75) saturate(1.2);
+    border-radius: 6px 0 0 6px;
+  }
+
+  .event-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    margin-bottom: 2px;
   }
 
   .event-time {
@@ -54,8 +55,22 @@ $event-font-size: 13px;
     overflow: hidden;
     text-overflow: ellipsis;
     line-height: 1.2;
-    margin: 0; // Remove margins
-    padding-bottom: 1px; // Tiny gap
+  }
+
+  .color-picker-toggle {
+    width: 14px;
+    height: 14px;
+    border: 1px solid rgba(255, 255, 255, 0.8);
+    border-radius: 50%;
+    padding: 0;
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    flex-shrink: 0;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+
+    &:hover {
+      transform: scale(1.2);
+    }
   }
 
   .event-title {
@@ -68,20 +83,49 @@ $event-font-size: 13px;
     margin: 0;
   }
 
-  // Actions container
+  input {
+    width: 100%;
+    border: none;
+    border-radius: 4px;
+    padding: 2px 4px;
+    font-size: 12px;
+    color: #1a1a1a;
+    font-weight: 700;
+    outline: none;
+    background: rgba(255, 255, 255, 0.5);
+    margin: -2px 0;
+
+    &:focus {
+      background: white;
+      box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.05);
+    }
+  }
+
+  .inline-color-picker {
+    position: absolute;
+    top: 24px;
+    right: 0;
+    z-index: 100;
+
+    app-color-picker {
+      transform: scale(0.7);
+      transform-origin: top right;
+    }
+  }
+
   .actions {
     position: absolute;
     top: 4px;
-    left: 4px; // RTL: left side
-    display: none; // Hidden by default
+    left: 4px;
+    display: none;
     gap: 4px;
     z-index: 10;
 
     .action-btn {
-      width: 20px;
-      height: 20px;
+      width: 18px;
+      height: 18px;
       border: none;
-      background: rgba(255, 255, 255, 0.6);
+      background: rgba(255, 255, 255, 0.8);
       border-radius: 4px;
       display: flex;
       align-items: center;
@@ -96,37 +140,19 @@ $event-font-size: 13px;
         box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
       }
 
-      svg {
-        width: 12px;
-        height: 12px;
-        stroke-width: 2.5;
-      }
-
       &.delete-btn:hover {
-        color: #ef4444; // Red for delete
-      }
-
-      &.edit-btn:hover {
-        color: #000;
+        color: #ef4444;
       }
     }
   }
 
   &:hover {
-    z-index: 5;
+    z-index: 20;
     transform: translateY(-1px);
-    box-shadow:
-      0 4px 8px rgba(0, 0, 0, 0.1),
-      0 2px 4px rgba(0, 0, 0, 0.05);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 
     .actions {
       display: flex;
     }
-  }
-
-  // When the event is being edited
-  &.hidden {
-    opacity: 0;
-    pointer-events: none;
   }
 }

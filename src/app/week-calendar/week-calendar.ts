@@ -1,8 +1,6 @@
 import { Component, computed, effect, ElementRef, input, signal, viewChild, AfterViewInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ColorPickerComponent } from './color-picker/color-picker';
-import { OverlayModule } from '@angular/cdk/overlay';
-import { CdkConnectedOverlay, CdkOverlayOrigin } from '@angular/cdk/overlay';
 import { EventComponent } from './event/event'; // Correct import will be added later
 
 export interface CalendarCell {
@@ -24,7 +22,7 @@ export type PendingEvent = Omit<CalendarEvent, 'title'>;
 
 @Component({
   selector: 'app-week-calendar',
-  imports: [FormsModule, OverlayModule, CdkOverlayOrigin, CdkConnectedOverlay, ColorPickerComponent, EventComponent],
+  imports: [FormsModule, EventComponent],
   templateUrl: './week-calendar.html',
   styleUrls: ['./week-calendar.scss'],
   host: {
@@ -79,7 +77,6 @@ export class WeekCalendarComponent implements AfterViewInit {
   editingEvent = signal<CalendarEvent | null>(null);
 
   calendarContainer = viewChild.required<ElementRef<HTMLDivElement>>('calendarContainer');
-  eventInput = viewChild<ElementRef<HTMLInputElement>>('eventInput');
 
   dayWidth = signal(0);
   protected headerHeight = 40;
@@ -87,11 +84,6 @@ export class WeekCalendarComponent implements AfterViewInit {
   protected timeSlotsColumnWidth = 60;
 
   constructor() {
-    effect(() => {
-      if (this.eventInput()) {
-        this.eventInput()!.nativeElement.focus();
-      }
-    });
   }
 
   ngAfterViewInit() {
@@ -152,6 +144,7 @@ export class WeekCalendarComponent implements AfterViewInit {
     this.editingEvent.set(null);
     this.newEventTitle.set('');
     this.newEventColor.set('#a0c4ff');
+    this.isOpen = false;
   }
 
   deleteEvent(event: CalendarEvent) {
@@ -288,6 +281,32 @@ export class WeekCalendarComponent implements AfterViewInit {
     };
     this.pendingEvent.set(updated);
     this.isOpen = false; // Close picker on selection
+  }
+
+  updateEventTitle(event: CalendarEvent, title: string) {
+    const titleVal = title || '';
+    event.title = titleVal;
+    // Update newEventTitle in case this is the pending event
+    if (this.pendingEvent()) {
+      this.newEventTitle.set(titleVal);
+    }
+  }
+
+  updateEventColor(event: CalendarEvent, color: string) {
+    event.color = color;
+    event.style = {
+      ...event.style,
+      backgroundColor: color,
+      borderColor: color,
+      '--event-color': color,
+    };
+  }
+
+  pendingAsEvent(pending: PendingEvent): CalendarEvent {
+    return {
+      ...pending,
+      title: this.newEventTitle(),
+    };
   }
 
   confirmEventCreation() {
