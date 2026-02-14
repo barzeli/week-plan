@@ -48,10 +48,10 @@ export class WeekCalendarComponent implements AfterViewInit {
     const startTimeInMinutes = this.startHour() * 60 + this.startMinute();
     const endTimeInMinutes = this.endHour() * 60 + this.endMinute();
 
-    const numberOfSlots = Math.floor((endTimeInMinutes - startTimeInMinutes) / 15) + 1;
+    const numberOfSlots = Math.floor((endTimeInMinutes - startTimeInMinutes) / this.slotDuration) + 1;
 
     return Array.from({ length: numberOfSlots }, (_, index) => {
-      const totalMinutes = startTimeInMinutes + index * 15;
+      const totalMinutes = startTimeInMinutes + index * this.slotDuration;
       let hour = Math.floor(totalMinutes / 60);
       const minute = totalMinutes % 60;
 
@@ -76,8 +76,9 @@ export class WeekCalendarComponent implements AfterViewInit {
 
   dayWidth = signal(0);
   protected headerHeight = 40;
-  protected cellHeight = 30;
+  protected cellHeight = 50; // Adjusted for 30-minute slots
   protected timeSlotsColumnWidth = 60;
+  private readonly slotDuration = 30; // Half-hour slots
 
   constructor() {
   }
@@ -98,7 +99,9 @@ export class WeekCalendarComponent implements AfterViewInit {
   }
 
   onDragStart(day: string, hour: string) {
-    // We now allow dragging even if pendingEvent exists, to "move" or "resize" the time of the pending event.
+    // If there's an event being edited without a title, remove it
+    this.events.update(prev => prev.filter(e => !e.isEditing || e.title.trim() !== ''));
+
     this.isDragging = true;
     this.selectionStartCell = { day, hour };
     this.selectionEndCell = { day, hour };
@@ -221,14 +224,14 @@ export class WeekCalendarComponent implements AfterViewInit {
     let endHour = parseInt(endHourStr, 10);
     let endMinute = parseInt(endMinuteStr, 10);
 
-    // Add 15 minutes to get the actual end time
-    endMinute += 15;
+    // Add slotDuration minutes to get the actual end time
+    endMinute += this.slotDuration;
     if (endMinute >= 60) {
-      endMinute -= 60;
-      endHour += 1;
+      endHour += Math.floor(endMinute / 60);
+      endMinute = endMinute % 60;
     }
     // Handle midnight wrap-around if needed
-    if (endHour >= 24) endHour = 0;
+    if (endHour >= 24) endHour = endHour % 24;
 
     const formattedEnd = `${String(endHour).padStart(2, '0')}:${String(endMinute).padStart(2, '0')}`;
     return `${start} - ${formattedEnd}`;
