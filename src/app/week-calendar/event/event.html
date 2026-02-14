@@ -27,18 +27,20 @@
   </div>
 </div>
 
-@if (editingNow()) {
-  <input
-    #titleInput
-    type="text"
-    [(ngModel)]="event().title"
-    (keydown)="onTitleKeyDown($event)"
-    (click)="$event.stopPropagation()"
-    placeholder="כותרת..."
-  />
-} @else {
-  <div class="event-title">{{ event().title }}</div>
-}
+<div class="event-content">
+  @if (editingNow()) {
+    <input
+      #titleInput
+      type="text"
+      [(ngModel)]="event().title"
+      (keydown)="onTitleKeyDown($event)"
+      (click)="$event.stopPropagation()"
+      placeholder="כותרת..."
+    />
+  } @else {
+    <div class="event-title">{{ event().title }}</div>
+  }
+</div>
 
 @if (isOpen()) {
   <div class="inline-color-picker" (click)="$event.stopPropagation()">

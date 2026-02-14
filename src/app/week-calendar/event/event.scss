@@ -70,7 +70,7 @@ $event-font-family: 'Inter', sans-serif;
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    color: #444;
+    color: #444444;
     padding: 0;
     transition: all 0.2s;
 
@@ -97,7 +97,7 @@ $event-font-family: 'Inter', sans-serif;
   .color-picker-toggle {
     width: 14px;
     height: 14px;
-    border: 1px solid rgba(255, 255, 255, 0.8);
+    border: 1px solid rgba(68, 68, 68, 0.8);
     border-radius: 50%;
     padding: 0;
     cursor: pointer;
@@ -108,6 +108,10 @@ $event-font-family: 'Inter', sans-serif;
     &:hover {
       transform: scale(1.2);
     }
+  }
+
+  .event-content {
+    margin-top: 4px;
   }
 
   .event-title {

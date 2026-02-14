@@ -1,5 +1,4 @@
 import { Component, computed, ElementRef, input, signal, viewChild, AfterViewInit } from '@angular/core';
-import { FormsModule } from '@angular/forms';
 import { EventComponent } from './event/event';
 
 export interface CalendarCell {
@@ -21,7 +20,7 @@ export interface CalendarEvent {
 
 @Component({
   selector: 'app-week-calendar',
-  imports: [FormsModule, EventComponent],
+  imports: [EventComponent],
   templateUrl: './week-calendar.html',
   styleUrls: ['./week-calendar.scss'],
   host: {
