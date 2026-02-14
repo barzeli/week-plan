@@ -1,4 +1,4 @@
-import { Component, input, output, signal, ElementRef, viewChild, effect } from '@angular/core';
+import { Component, input, output, signal, ElementRef, viewChild, effect, computed } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { CalendarEvent } from '../week-calendar';
 import { ColorPickerComponent } from '../color-picker/color-picker';
@@ -16,40 +16,34 @@ import { ColorPickerComponent } from '../color-picker/color-picker';
 })
 export class EventComponent {
   event = input.required<CalendarEvent>();
-  isEditing = signal(false);
-  isPending = input(false); // New input to identify if it's the creation phase
+  isEditing = input<boolean>(false);
 
   edit = output<MouseEvent>();
   delete = output<MouseEvent>();
-  titleChange = output<string>();
-  colorChange = output<string>();
   confirm = output<void>();
 
   isOpen = signal(false);
+  localEditing = signal(false);
   titleInput = viewChild<ElementRef<HTMLInputElement>>('titleInput');
+
+  editingNow = computed(() => this.isEditing() || this.localEditing());
 
   constructor() {
     effect(() => {
-      if (this.isEditing() || this.isPending()) {
+      if (this.editingNow()) {
         setTimeout(() => this.titleInput()?.nativeElement.focus(), 0);
       }
     });
-
-    effect(() => {
-      if (this.isPending()) {
-        this.isEditing.set(true);
-      }
-    }, { allowSignalWrites: true });
   }
 
   onDblClick(e: MouseEvent) {
     e.stopPropagation();
-    this.isEditing.set(true);
+    this.localEditing.set(true);
   }
 
   onEdit(e: MouseEvent) {
     e.stopPropagation();
-    this.isEditing.set(true);
+    this.localEditing.set(true);
     this.edit.emit(e);
   }
 
@@ -60,15 +54,23 @@ export class EventComponent {
 
   onTitleKeyDown(e: KeyboardEvent) {
     if (e.key === 'Enter') {
-      this.isEditing.set(false);
+      this.localEditing.set(false);
       this.confirm.emit();
     } else if (e.key === 'Escape') {
-      this.isEditing.set(false);
+      this.localEditing.set(false);
+      this.confirm.emit();
     }
   }
 
   onColorSelected(color: string) {
-    this.colorChange.emit(color);
+    const ev = this.event();
+    ev.color = color;
+    ev.style = {
+      ...ev.style,
+      backgroundColor: color,
+      borderColor: color,
+      '--event-color': color,
+    };
     this.isOpen.set(false);
   }
 }

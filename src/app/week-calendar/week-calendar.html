@@ -27,25 +27,13 @@
     </div>
   }
   <div class="events-container">
-    @for (event of events; track $index) {
+    @for (event of events(); track $index) {
       <app-event
         class="event"
         [event]="event"
-        (edit)="editEvent(event, $event)"
+        [isEditing]="event.isEditing || false"
         (delete)="deleteEvent(event)"
-        (titleChange)="updateEventTitle(event, $event)"
-        (colorChange)="updateEventColor(event, $event)"
-      ></app-event>
-    }
-    @if (pendingEvent(); as pending) {
-      <app-event
-        class="event"
-        [event]="pendingAsEvent(pending)"
-        [isPending]="true"
-        (titleChange)="newEventTitle.set($event)"
-        (colorChange)="setEventColor($event)"
-        (confirm)="confirmEventCreation()"
-        (delete)="cancelEdit()"
+        (confirm)="confirmEvent(event)"
       ></app-event>
     }
   </div>

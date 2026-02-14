@@ -15,6 +15,7 @@ export interface CalendarEvent {
   style: { [key: string]: string };
   displayTime?: string;
   color: string;
+  isEditing?: boolean;
 }
 
 export type PendingEvent = Omit<CalendarEvent, 'title'>;
@@ -68,13 +69,8 @@ export class WeekCalendarComponent implements AfterViewInit {
   isDragging = false;
   selectionStartCell: CalendarCell | null = null;
   selectionEndCell: CalendarCell | null = null;
-  events: CalendarEvent[] = [];
+  events = signal<CalendarEvent[]>([]);
   selectedCellMap = signal<Map<string, boolean>>(new Map());
-  pendingEvent = signal<PendingEvent | null>(null);
-  newEventTitle = signal('');
-  newEventColor = signal('#a0c4ff');
-
-  editingEvent = signal<CalendarEvent | null>(null);
 
   calendarContainer = viewChild.required<ElementRef<HTMLDivElement>>('calendarContainer');
 
@@ -109,49 +105,15 @@ export class WeekCalendarComponent implements AfterViewInit {
     this.updateSelectedCells();
   }
 
-  editEvent(event: CalendarEvent, mouseEvent: Event) {
-    mouseEvent.stopPropagation();
-
-    // If we are already editing another event, confirm it first?
-    if (this.pendingEvent()) {
-      this.confirmEventCreation();
-    }
-
-    // Capture the event being edited (don't remove it yet)
-    this.editingEvent.set(event);
-
-    // Set state
-    this.newEventTitle.set(event.title);
-    this.newEventColor.set(event.color);
-
-    // Set pending event from the existing event data
-    const { title, ...rest } = event;
-    this.pendingEvent.set(rest);
-  }
-
   onEscape() {
     if (this.isOpen) {
       this.isOpen = false;
       return;
     }
-    if (this.pendingEvent()) {
-      this.cancelEdit();
-    }
-  }
-
-  cancelEdit() {
-    this.pendingEvent.set(null);
-    this.editingEvent.set(null);
-    this.newEventTitle.set('');
-    this.newEventColor.set('#a0c4ff');
-    this.isOpen = false;
   }
 
   deleteEvent(event: CalendarEvent) {
-    this.events = this.events.filter(e => e !== event);
-    if (this.editingEvent() === event) {
-      this.cancelEdit();
-    }
+    this.events.update(prev => prev.filter(e => e !== event));
   }
 
   onDocumentMouseMove(event: MouseEvent) {
@@ -205,23 +167,31 @@ export class WeekCalendarComponent implements AfterViewInit {
     const minHourIndex = Math.min(startHourIndex, endHourIndex);
     const maxHourIndex = Math.max(startHourIndex, endHourIndex);
 
-    const color = this.newEventColor();
-    // We preserve existing properties (like if there were any others) but here we reconstruct.
-    // Importantly, newEventTitle is separate so it's preserved.
-    this.pendingEvent.set({
+    const defaultColor = '#a0c4ff';
+    const newEvent: CalendarEvent = {
       start: { day: startDay, hour: this.hours()[minHourIndex] },
       end: { day: startDay, hour: this.hours()[maxHourIndex] },
-      color: color,
+      title: '',
+      color: defaultColor,
+      isEditing: true,
+      displayTime: this.getEventTimeRange({
+        start: { day: startDay, hour: this.hours()[minHourIndex] },
+        end: { day: startDay, hour: this.hours()[maxHourIndex] },
+        color: defaultColor,
+        style: {}
+      }),
       style: {
         top: `${this.headerHeight + minHourIndex * this.cellHeight}px`,
         right: `${startDayIndex * this.dayWidth()}px`,
         width: `${this.dayWidth()}px`,
         height: `${(maxHourIndex - minHourIndex + 1) * this.cellHeight}px`,
-        backgroundColor: color,
-        borderColor: color,
-        '--event-color': color,
+        backgroundColor: defaultColor,
+        borderColor: defaultColor,
+        '--event-color': defaultColor,
       },
-    });
+    };
+
+    this.events.update(prev => [...prev, newEvent]);
   }
 
   private resetDragState() {
@@ -232,101 +202,14 @@ export class WeekCalendarComponent implements AfterViewInit {
   }
 
   onDocumentMouseDown(event: MouseEvent) {
-    if (!this.pendingEvent()) return;
+  }
 
-    const target = event.target as HTMLElement;
-    const isClickInsidePendingEvent = target.closest('.event.pending');
-    const isClickInsideOverlay = target.closest('.cdk-overlay-container');
-    const isClickCalendarCell = target.closest('.calendar-cell');
-
-    // If we click a calendar cell, we are likely starting a drag to update time,
-    // so DO NOT confirm/close the pending event.
-    if (!isClickInsidePendingEvent && !isClickInsideOverlay && !isClickCalendarCell) {
-      this.confirmEventCreation();
+  confirmEvent(event: CalendarEvent) {
+    if (!event.title.trim()) {
+      this.deleteEvent(event);
+    } else {
+      event.isEditing = false;
     }
-  }
-
-  onColorChange() {
-    // This might not be needed if setEventColor does the job directly
-    const pending = this.pendingEvent();
-    if (!pending) return;
-    const color = this.newEventColor();
-    const updated = {
-      ...pending,
-      color: color,
-      style: {
-        ...pending.style,
-        backgroundColor: color,
-        borderColor: color,
-        '--event-color': color,
-      },
-    };
-    this.pendingEvent.set(updated);
-    this.isOpen = false; // Close picker on selection
-  }
-
-  setEventColor(color: string) {
-    this.newEventColor.set(color);
-    const pending = this.pendingEvent();
-    if (!pending) return;
-    const updated = {
-      ...pending,
-      color: color,
-      style: {
-        ...pending.style,
-        backgroundColor: color,
-        borderColor: color,
-        '--event-color': color,
-      },
-    };
-    this.pendingEvent.set(updated);
-    this.isOpen = false; // Close picker on selection
-  }
-
-  updateEventTitle(event: CalendarEvent, title: string) {
-    const titleVal = title || '';
-    event.title = titleVal;
-    // Update newEventTitle in case this is the pending event
-    if (this.pendingEvent()) {
-      this.newEventTitle.set(titleVal);
-    }
-  }
-
-  updateEventColor(event: CalendarEvent, color: string) {
-    event.color = color;
-    event.style = {
-      ...event.style,
-      backgroundColor: color,
-      borderColor: color,
-      '--event-color': color,
-    };
-  }
-
-  pendingAsEvent(pending: PendingEvent): CalendarEvent {
-    return {
-      ...pending,
-      title: this.newEventTitle(),
-    };
-  }
-
-  confirmEventCreation() {
-    const title = this.newEventTitle().trim();
-    const pending = this.pendingEvent();
-    if (title && pending) {
-      const displayTime = this.getEventTimeRange(pending);
-      const color = this.newEventColor();
-      const newEvent = { ...pending, title, displayTime, color };
-
-      const editing = this.editingEvent();
-      if (editing) {
-        // Replace existing
-        this.events = this.events.map(e => e === editing ? newEvent : e);
-      } else {
-        // Create new
-        this.events = [...this.events, newEvent];
-      }
-    }
-    this.cancelEdit(); // Clears state
   }
 
   getEventTimeRange(event: CalendarEvent | PendingEvent): string {
