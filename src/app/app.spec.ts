@@ -1,6 +1,6 @@
-import { provideZonelessChangeDetection } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { App } from './app';
+import { provideZonelessChangeDetection } from '@angular/core';
 
 describe('App', () => {
   beforeEach(async () => {
@@ -16,10 +16,10 @@ describe('App', () => {
     expect(app).toBeTruthy();
   });
 
-  it('should render router-outlet', () => {
+  it('should render the week calendar', () => {
     const fixture = TestBed.createComponent(App);
     fixture.detectChanges();
     const compiled = fixture.nativeElement as HTMLElement;
-    expect(compiled.querySelector('router-outlet')).toBeTruthy();
+    expect(compiled.querySelector('app-week-calendar')).toBeTruthy();
   });
 });

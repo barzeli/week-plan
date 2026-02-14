@@ -1,9 +1,9 @@
 import { Component } from '@angular/core';
-import { RouterOutlet } from '@angular/router';
+import { WeekCalendarComponent } from './week-calendar/week-calendar';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet],
+  imports: [WeekCalendarComponent],
   templateUrl: './app.html',
   styleUrl: './app.scss',
 })
