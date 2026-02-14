@@ -10,7 +10,7 @@ export interface CalendarEvent {
   start: { day: string; hour: string };
   end: { day: string; hour: string };
   title: string;
-  style: { [key: string]: string };
+  style: Record<string, string>;
   displayTime?: string;
   color: string;
   isEditing?: boolean;
@@ -69,8 +69,6 @@ export class WeekCalendarComponent {
   protected headerHeight = 40;
   protected cellHeight = 50;
   private readonly slotDuration = 30;
-
-  constructor() {}
 
   onDragStart(day: string, hour: string) {
     if (this.isCellOccupied(day, hour)) return;
@@ -166,7 +164,7 @@ export class WeekCalendarComponent {
       displayTime: this.getEventTimeRange({
         start: { day: startDay, hour: this.hours()[minHourIndex] },
         end: { day: startDay, hour: this.hours()[maxHourIndex] },
-      } as any),
+      }),
       style: {
         top: `${this.headerHeight + minHourIndex * this.cellHeight}px`,
         right: `${(startDayIndex * 100) / 7}%`,
@@ -196,7 +194,7 @@ export class WeekCalendarComponent {
     }
   }
 
-  getEventTimeRange(event: CalendarEvent): string {
+  getEventTimeRange(event: Pick<CalendarEvent, 'start' | 'end'>): string {
     const start = event.start.hour;
     const endSlotStart = event.end.hour;
 

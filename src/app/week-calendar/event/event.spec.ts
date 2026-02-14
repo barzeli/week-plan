@@ -1,6 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { EventComponent } from './event';
-import { CalendarEvent, WeekCalendarComponent } from '../week-calendar';
+import { CalendarEvent } from '../week-calendar';
 import { provideZonelessChangeDetection } from '@angular/core';
 
 describe('EventComponent', () => {
