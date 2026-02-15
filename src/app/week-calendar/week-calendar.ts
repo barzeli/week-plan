@@ -33,7 +33,7 @@ export interface CalendarEvent {
   host: {
     '(document:mousemove)': 'onDocumentMouseMove($event)',
     '(document:mouseup)': 'onDocumentMouseUp()',
-    '(document:keydown.escape)': 'resetDragState()',
+    '(document:keydown.escape)': 'onEscape()',
   },
 })
 export class WeekCalendarComponent {
@@ -139,8 +139,13 @@ export class WeekCalendarComponent {
     if (!event.title.trim()) {
       this.deleteEvent(event);
     } else {
-      event.isEditing = false;
+      this.events.update((prev) => prev.map((e) => (e === event ? { ...e, isEditing: false } : e)));
     }
+  }
+
+  onEscape() {
+    this.resetDragState();
+    this.events.update((prev) => prev.filter((e) => !e.isEditing || e.title.trim() !== ''));
   }
 
   protected resetDragState() {
