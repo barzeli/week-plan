@@ -6,8 +6,14 @@
       class="color-picker-toggle"
       [style.background]="event().color"
       (click)="isOpen.set(!isOpen()); $event.stopPropagation()"
+      aria-label="בחר צבע"
     ></button>
-    <button class="header-action-btn delete-btn" (click)="onDelete($event)" title="Delete">
+    <button
+      class="header-action-btn delete-btn"
+      (click)="onDelete($event)"
+      title="Delete"
+      aria-label="מחק אירוע"
+    >
       <span class="material-symbols-outlined">delete</span>
     </button>
   </div>
@@ -29,7 +35,12 @@
 </div>
 
 @if (isOpen()) {
-  <div class="inline-color-picker" (click)="$event.stopPropagation()">
+  <div
+    class="inline-color-picker"
+    (click)="$event.stopPropagation()"
+    (keydown.enter)="$event.stopPropagation()"
+    tabindex="-1"
+  >
     <app-color-picker
       [selectedColor]="event().color"
       (colorSelected)="onColorSelected($event)"

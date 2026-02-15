@@ -1,4 +1,5 @@
 import {
+  ChangeDetectionStrategy,
   Component,
   input,
   output,
@@ -18,6 +19,7 @@ import { ColorPickerComponent } from '../color-picker/color-picker';
   imports: [FormsModule, ColorPickerComponent],
   templateUrl: './event.html',
   styleUrls: ['./event.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
   host: {
     '[style]': 'event().style',
     '[style.--event-color]': 'event().color',
@@ -25,17 +27,17 @@ import { ColorPickerComponent } from '../color-picker/color-picker';
   },
 })
 export class EventComponent {
-  event = input.required<CalendarEvent>();
-  isEditing = input<boolean>(false);
+  readonly event = input.required<CalendarEvent>();
+  readonly isEditing = input<boolean>(false);
 
-  delete = output<MouseEvent>();
-  confirm = output<void>();
+  readonly delete = output<MouseEvent>();
+  readonly confirm = output<void>();
 
-  isOpen = signal(false);
-  localEditing = signal(false);
-  titleInput = viewChild<ElementRef<HTMLInputElement>>('titleInput');
+  readonly isOpen = signal(false);
+  readonly localEditing = signal(false);
+  readonly titleInput = viewChild<ElementRef<HTMLInputElement>>('titleInput');
 
-  editingNow = computed(() => this.isEditing() || this.localEditing());
+  readonly editingNow = computed(() => this.isEditing() || this.localEditing());
 
   constructor() {
     effect(() => {

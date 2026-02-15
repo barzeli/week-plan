@@ -1,4 +1,12 @@
-import { Component, computed, ElementRef, input, signal, viewChild } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  ElementRef,
+  input,
+  signal,
+  viewChild,
+} from '@angular/core';
 import { EventComponent } from './event/event';
 
 export interface CalendarCell {
@@ -21,6 +29,7 @@ export interface CalendarEvent {
   imports: [EventComponent],
   templateUrl: './week-calendar.html',
   styleUrls: ['./week-calendar.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
   host: {
     '(document:mousemove)': 'onDocumentMouseMove($event)',
     '(document:mouseup)': 'onDocumentMouseUp()',
@@ -28,17 +37,27 @@ export interface CalendarEvent {
   },
 })
 export class WeekCalendarComponent {
-  startHour = input(8);
-  startMinute = input(30);
-  endHour = input(24);
-  endMinute = input(0);
+  readonly startHour = input(8);
+  readonly startMinute = input(30);
+  readonly endHour = input(24);
+  readonly endMinute = input(0);
 
-  days = ['ראשון', 'שני', 'שלישי', 'רביעי', 'חמישי', 'שישי', 'שבת'];
+  readonly days = ['ראשון', 'שני', 'שלישי', 'רביעי', 'חמישי', 'שישי', 'שבת'];
+  private readonly slotDuration = 30;
+  protected readonly headerHeight = 40;
+  protected readonly cellHeight = 50;
 
-  hours = computed(() => {
+  readonly calendarContainer = viewChild.required<ElementRef<HTMLDivElement>>('calendarContainer');
+
+  readonly events = signal<CalendarEvent[]>([]);
+  readonly selectedCellMap = signal<Map<string, boolean>>(new Map());
+  private readonly isDragging = signal(false);
+  private readonly selectionStartCell = signal<CalendarCell | null>(null);
+  private readonly selectionEndCell = signal<CalendarCell | null>(null);
+
+  readonly hours = computed(() => {
     const startTimeInMinutes = this.startHour() * 60 + this.startMinute();
     const endTimeInMinutes = this.endHour() * 60 + this.endMinute();
-
     const numberOfSlots =
       Math.floor((endTimeInMinutes - startTimeInMinutes) / this.slotDuration) + 1;
 
@@ -46,62 +65,34 @@ export class WeekCalendarComponent {
       const totalMinutes = startTimeInMinutes + index * this.slotDuration;
       let hour = Math.floor(totalMinutes / 60);
       const minute = totalMinutes % 60;
-
-      if (hour === 24) {
-        hour = 0;
-      }
-
-      const formattedHour = String(hour).padStart(2, '0');
-      const formattedMinute = String(minute).padStart(2, '0');
-
-      return `${formattedHour}:${formattedMinute}`;
+      if (hour === 24) hour = 0;
+      return `${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}`;
     });
   });
 
-  isDragging = false;
-  selectionStartCell: CalendarCell | null = null;
-  selectionEndCell: CalendarCell | null = null;
-  events = signal<CalendarEvent[]>([]);
-  selectedCellMap = signal<Map<string, boolean>>(new Map());
-
-  calendarContainer = viewChild.required<ElementRef<HTMLDivElement>>('calendarContainer');
-
-  protected headerHeight = 40;
-  protected cellHeight = 50;
-  private readonly slotDuration = 30;
-
   onDragStart(day: string, hour: string) {
     if (this.isCellOccupied(day, hour)) return;
-
     this.events.update((prev) => prev.filter((e) => !e.isEditing || e.title.trim() !== ''));
-
-    this.isDragging = true;
-    this.selectionStartCell = { day, hour };
-    this.selectionEndCell = { day, hour };
+    this.isDragging.set(true);
+    this.selectionStartCell.set({ day, hour });
+    this.selectionEndCell.set({ day, hour });
     this.updateSelectedCells();
   }
 
-  deleteEvent(event: CalendarEvent) {
-    this.events.update((prev) => prev.filter((e) => e !== event));
-  }
-
   onDocumentMouseMove(event: MouseEvent) {
-    if (!this.isDragging) return;
+    if (!this.isDragging()) return;
 
     const calendarContainerElement = this.calendarContainer().nativeElement;
     const containerRect = calendarContainerElement.getBoundingClientRect();
-
     const hoveredElement = document.elementFromPoint(event.clientX, event.clientY);
-    if (hoveredElement && hoveredElement.classList.contains('calendar-cell')) {
+
+    if (hoveredElement?.classList.contains('calendar-cell')) {
       const day = hoveredElement.getAttribute('data-day');
       const hour = hoveredElement.getAttribute('data-hour');
-      if (day && hour) {
-        this.onDragOver(day, hour);
-      }
+      if (day && hour) this.onDragOver(day, hour);
     }
 
     const scrollAmount = 10;
-
     if (event.clientY < containerRect.top + 30) {
       calendarContainerElement.scrollTop -= scrollAmount;
     } else if (event.clientY > containerRect.bottom - 30) {
@@ -110,12 +101,11 @@ export class WeekCalendarComponent {
   }
 
   onDragOver(day: string, hour: string) {
-    if (this.isDragging && this.selectionStartCell && this.selectionStartCell.day === day) {
-      const startHour = this.selectionStartCell.hour;
+    const startCell = this.selectionStartCell();
+    if (this.isDragging() && startCell && startCell.day === day) {
       const hours = this.hours();
-      const startIdx = hours.indexOf(startHour);
+      const startIdx = hours.indexOf(startCell.hour);
       const endIdx = hours.indexOf(hour);
-
       const minIdx = Math.min(startIdx, endIdx);
       const maxIdx = Math.max(startIdx, endIdx);
 
@@ -128,42 +118,64 @@ export class WeekCalendarComponent {
       }
 
       if (isClear) {
-        this.selectionEndCell = { day, hour };
+        this.selectionEndCell.set({ day, hour });
         this.updateSelectedCells();
       }
     }
   }
 
   onDocumentMouseUp() {
-    if (this.isDragging) {
+    if (this.isDragging()) {
       this.preparePendingEvent();
       this.resetDragState();
     }
   }
 
-  private preparePendingEvent() {
-    if (!this.selectionStartCell || !this.selectionEndCell) return;
+  deleteEvent(event: CalendarEvent) {
+    this.events.update((prev) => prev.filter((e) => e !== event));
+  }
 
-    const startDay = this.selectionStartCell.day;
+  confirmEvent(event: CalendarEvent) {
+    if (!event.title.trim()) {
+      this.deleteEvent(event);
+    } else {
+      event.isEditing = false;
+    }
+  }
+
+  protected resetDragState() {
+    this.isDragging.set(false);
+    this.selectionStartCell.set(null);
+    this.selectionEndCell.set(null);
+    this.selectedCellMap.set(new Map());
+  }
+
+  private preparePendingEvent() {
+    const startCell = this.selectionStartCell();
+    const endCell = this.selectionEndCell();
+    if (!startCell || !endCell) return;
+
+    const startDay = startCell.day;
     const startDayIndex = this.days.indexOf(startDay);
-    const startHourIndex = this.hours().indexOf(this.selectionStartCell.hour);
-    const endHourIndex = this.hours().indexOf(this.selectionEndCell.hour);
+    const hours = this.hours();
+    const startHourIndex = hours.indexOf(startCell.hour);
+    const endHourIndex = hours.indexOf(endCell.hour);
 
     if (startDayIndex === -1 || startHourIndex === -1 || endHourIndex === -1) return;
 
     const minHourIndex = Math.min(startHourIndex, endHourIndex);
     const maxHourIndex = Math.max(startHourIndex, endHourIndex);
-
     const defaultColor = '#a0c4ff';
+
     const newEvent: CalendarEvent = {
-      start: { day: startDay, hour: this.hours()[minHourIndex] },
-      end: { day: startDay, hour: this.hours()[maxHourIndex] },
+      start: { day: startDay, hour: hours[minHourIndex] },
+      end: { day: startDay, hour: hours[maxHourIndex] },
       title: '',
       color: defaultColor,
       isEditing: true,
       displayTime: this.getEventTimeRange({
-        start: { day: startDay, hour: this.hours()[minHourIndex] },
-        end: { day: startDay, hour: this.hours()[maxHourIndex] },
+        start: { day: startDay, hour: hours[minHourIndex] },
+        end: { day: startDay, hour: hours[maxHourIndex] },
       }),
       style: {
         top: `${this.headerHeight + minHourIndex * this.cellHeight}px`,
@@ -176,54 +188,37 @@ export class WeekCalendarComponent {
     this.events.update((prev) => [...prev, newEvent]);
   }
 
-  protected resetDragState() {
-    this.isDragging = false;
-    this.selectionStartCell = null;
-    this.selectionEndCell = null;
-    this.selectedCellMap.set(new Map());
-  }
-
-  confirmEvent(event: CalendarEvent) {
-    if (!event.title.trim()) {
-      this.deleteEvent(event);
-    } else {
-      event.isEditing = false;
-    }
-  }
-
-  getEventTimeRange(event: Pick<CalendarEvent, 'start' | 'end'>): string {
+  private getEventTimeRange(event: Pick<CalendarEvent, 'start' | 'end'>): string {
     const start = event.start.hour;
-    const endSlotStart = event.end.hour;
-
-    const [endHourStr, endMinuteStr] = endSlotStart.split(':');
+    const [endHourStr, endMinuteStr] = event.end.hour.split(':');
     let endHour = parseInt(endHourStr, 10);
-    let endMinute = parseInt(endMinuteStr, 10);
+    let endMinute = parseInt(endMinuteStr, 10) + this.slotDuration;
 
-    endMinute += this.slotDuration;
     if (endMinute >= 60) {
       endHour += Math.floor(endMinute / 60);
       endMinute = endMinute % 60;
     }
-    if (endHour >= 24) endHour = endHour % 24;
+    if (endHour >= 24) endHour %= 24;
 
-    const formattedEnd = `${String(endHour).padStart(2, '0')}:${String(endMinute).padStart(2, '0')}`;
-    return `${start} - ${formattedEnd}`;
+    return `${start} - ${String(endHour).padStart(2, '0')}:${String(endMinute).padStart(2, '0')}`;
   }
 
   private updateSelectedCells() {
+    const startCell = this.selectionStartCell();
+    const endCell = this.selectionEndCell();
     const newSelectedCellMap = new Map<string, boolean>();
-    if (this.selectionStartCell && this.selectionEndCell) {
-      const startDayIndex = this.days.indexOf(this.selectionStartCell.day);
-      const startHourIndex = this.hours().indexOf(this.selectionStartCell.hour);
-      const endHourIndex = this.hours().indexOf(this.selectionEndCell.hour);
+
+    if (startCell && endCell) {
+      const hours = this.hours();
+      const startDayIndex = this.days.indexOf(startCell.day);
+      const startHourIndex = hours.indexOf(startCell.hour);
+      const endHourIndex = hours.indexOf(endCell.hour);
 
       if (startDayIndex !== -1 && startHourIndex !== -1 && endHourIndex !== -1) {
-        const minHourIndex = Math.min(startHourIndex, endHourIndex);
-        const maxHourIndex = Math.max(startHourIndex, endHourIndex);
-
-        for (let i = minHourIndex; i <= maxHourIndex; i++) {
-          const hour = this.hours()[i];
-          newSelectedCellMap.set(`${this.selectionStartCell.day}-${hour}`, true);
+        const minHourIdx = Math.min(startHourIndex, endHourIndex);
+        const maxHourIdx = Math.max(startHourIndex, endHourIndex);
+        for (let i = minHourIdx; i <= maxHourIdx; i++) {
+          newSelectedCellMap.set(`${startCell.day}-${hours[i]}`, true);
         }
       }
     }
@@ -231,13 +226,14 @@ export class WeekCalendarComponent {
   }
 
   private isCellOccupied(day: string, hour: string): boolean {
-    const hourIndex = this.hours().indexOf(hour);
+    const hours = this.hours();
+    const hourIndex = hours.indexOf(hour);
     if (hourIndex === -1) return false;
 
     return this.events().some((event) => {
       if (event.start.day !== day) return false;
-      const startIdx = this.hours().indexOf(event.start.hour);
-      const endIdx = this.hours().indexOf(event.end.hour);
+      const startIdx = hours.indexOf(event.start.hour);
+      const endIdx = hours.indexOf(event.end.hour);
       return hourIndex >= startIdx && hourIndex <= endIdx;
     });
   }
