@@ -170,9 +170,6 @@ export class WeekCalendarComponent {
         right: `${(startDayIndex * 100) / 7}%`,
         width: `${100 / 7}%`,
         height: `${(maxHourIndex - minHourIndex + 1) * this.cellHeight}px`,
-        backgroundColor: defaultColor,
-        borderColor: defaultColor,
-        '--event-color': defaultColor,
       },
     };
 

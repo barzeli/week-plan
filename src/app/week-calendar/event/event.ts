@@ -20,6 +20,7 @@ import { ColorPickerComponent } from '../color-picker/color-picker';
   styleUrls: ['./event.scss'],
   host: {
     '[style]': 'event().style',
+    '[style.--event-color]': 'event().color',
     '(dblclick)': 'onDblClick($event)',
   },
 })
@@ -65,14 +66,7 @@ export class EventComponent {
   }
 
   onColorSelected(color: string) {
-    const ev = this.event();
-    ev.color = color;
-    ev.style = {
-      ...ev.style,
-      backgroundColor: color,
-      borderColor: color,
-      '--event-color': color,
-    };
+    this.event().color = color;
     this.isOpen.set(false);
   }
 }
