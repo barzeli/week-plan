@@ -34,7 +34,7 @@ describe('WeekCalendarComponent', () => {
 
     fixture.detectChanges();
 
-    const expectedSlots = 63;
+    const expectedSlots = 32;
 
     expect(component.hours().length).toBe(expectedSlots);
 

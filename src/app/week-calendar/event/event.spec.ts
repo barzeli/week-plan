@@ -15,10 +15,9 @@ describe('EventComponent', () => {
     color: '#ffadad',
     style: {
       top: '0px',
-      left: '0px',
+      right: '0px',
       width: '100px',
       height: '50px',
-      backgroundColor: '#ffadad',
     },
   };
 
@@ -48,14 +47,22 @@ describe('EventComponent', () => {
     expect(time?.textContent).toContain('08:00 - 09:00');
   });
 
-  it('should emit edit event on button click', () => {
+  it('should emit delete event on delete button click', () => {
     let emitted = false;
-    component.edit.subscribe(() => (emitted = true));
+    component.delete.subscribe(() => (emitted = true));
 
-    const editButton = fixture.nativeElement.querySelector('.edit-button');
-    expect(editButton).toBeTruthy();
+    const deleteButton = fixture.nativeElement.querySelector('.delete-btn');
+    expect(deleteButton).toBeTruthy();
 
-    editButton.click();
+    deleteButton.click();
     expect(emitted).toBeTrue();
+  });
+
+  it('should enter edit mode on double click', async () => {
+    fixture.nativeElement.dispatchEvent(new MouseEvent('dblclick'));
+    fixture.detectChanges();
+
+    expect(component.localEditing()).toBeTrue();
+    expect(fixture.nativeElement.querySelector('input')).toBeTruthy();
   });
 });
