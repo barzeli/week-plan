@@ -1,5 +1,5 @@
 <div class="event-header">
-  <div class="event-time">{{ event().displayTime }}</div>
+  <div class="event-time">{{ event() | eventTimeRange: 30 }}</div>
   <div class="header-controls">
     <button
       type="button"

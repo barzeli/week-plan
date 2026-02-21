@@ -12,11 +12,12 @@ import {
 import { FormsModule } from '@angular/forms';
 import { CalendarEvent } from '../week-calendar';
 import { ColorPickerComponent } from '../color-picker/color-picker';
+import { EventTimeRangePipe } from '../event-time-range/event-time-range-pipe';
 
 @Component({
   selector: 'app-event',
   standalone: true,
-  imports: [FormsModule, ColorPickerComponent],
+  imports: [FormsModule, ColorPickerComponent, EventTimeRangePipe],
   templateUrl: './event.html',
   styleUrls: ['./event.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,

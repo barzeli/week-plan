@@ -1,23 +1,23 @@
-<div #calendarContainer class="calendar-container" (dragstart)="$event.preventDefault()">
-  <div class="header-row">
-    <div class="time-slot-header" [style.height.px]="headerHeight"></div>
+<table #calendarContainer class="calendar-container">
+  <tr class="header-row">
+    <th class="header" [style.height.px]="headerHeight"></th>
     @for (day of days; track $index) {
-      <div class="day-header" [style.height.px]="headerHeight">{{ day }}</div>
+      <th class="header day-header" [style.height.px]="headerHeight">{{ day }}</th>
     }
-  </div>
+  </tr>
   @for (hour of hours(); track $index) {
-    <div class="calendar-row">
-      <div class="time-slot">{{ hour }}</div>
+    <tr class="calendar-row">
+      <td class="time-slot">{{ hour }}</td>
       @for (day of days; track $index) {
-        <div
+        <td
           class="calendar-cell"
-          [class.selected]="selectedCellMap().has(day + '-' + hour)"
+          [class.selected]="selectedCells().has(day + '-' + hour)"
           [style.height.px]="cellHeight"
           (mousedown)="onDragStart(day, hour)"
           (mouseenter)="onDragOver(day, hour)"
-        ></div>
+        ></td>
       }
-    </div>
+    </tr>
   }
   <div class="events-container">
     @for (event of events(); track $index) {
@@ -29,4 +29,4 @@
       ></app-event>
     }
   </div>
-</div>
+</table>

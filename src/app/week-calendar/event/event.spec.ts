@@ -11,7 +11,6 @@ describe('EventComponent', () => {
     start: { day: 'ראשון', hour: '08:00' },
     end: { day: 'ראשון', hour: '09:00' },
     title: 'Test Event',
-    displayTime: '08:00 - 09:00',
     color: '#ffadad',
     style: {
       top: '0px',
