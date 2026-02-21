@@ -28,40 +28,44 @@ import { ColorPickerComponent } from '../color-picker/color-picker';
 })
 export class EventComponent {
   readonly event = input.required<CalendarEvent>();
-  readonly isEditing = input<boolean>(false);
 
   readonly delete = output<MouseEvent>();
   readonly confirm = output<void>();
 
-  readonly isOpen = signal(false);
+  readonly isColorPickerOpen = signal(false);
   readonly localEditing = signal(false);
   readonly titleInput = viewChild<ElementRef<HTMLInputElement>>('titleInput');
 
-  readonly editingNow = computed(() => this.isEditing() || this.localEditing());
+  readonly editingNow = computed(() => this.event().isEditing || this.localEditing());
 
   constructor() {
     effect(() => {
-      if (this.editingNow()) {
-        setTimeout(() => this.titleInput()?.nativeElement.focus(), 0);
+      const input = this.titleInput();
+      if (this.editingNow() && input) {
+        input.nativeElement.focus();
       }
     });
   }
 
-  onDblClick(e: MouseEvent) {
-    e.stopPropagation();
+  onDblClick(event: MouseEvent) {
+    event.stopPropagation();
     this.localEditing.set(true);
   }
 
-  onDelete(e: MouseEvent) {
-    e.stopPropagation();
-    this.delete.emit(e);
+  onDelete(event: MouseEvent) {
+    event.stopPropagation();
+    this.delete.emit(event);
   }
 
-  onTitleKeyDown(e: KeyboardEvent) {
-    if (e.key === 'Enter') {
+  onTitleKeyDown(event: KeyboardEvent) {
+    if (['Enter', 'Escape'].includes(event.key)) {
       this.localEditing.set(false);
       this.confirm.emit();
-    } else if (e.key === 'Escape') {
+    }
+  }
+
+  onBlur() {
+    if (this.editingNow()) {
       this.localEditing.set(false);
       this.confirm.emit();
     }
@@ -69,6 +73,6 @@ export class EventComponent {
 
   onColorSelected(color: string) {
     this.event().color = color;
-    this.isOpen.set(false);
+    this.isColorPickerOpen.set(false);
   }
 }

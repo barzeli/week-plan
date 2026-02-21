@@ -5,7 +5,7 @@
       type="button"
       class="color-picker-toggle"
       [style.background]="event().color"
-      (click)="isOpen.set(!isOpen()); $event.stopPropagation()"
+      (click)="isColorPickerOpen.set(!isColorPickerOpen()); $event.stopPropagation()"
       aria-label="בחר צבע"
     ></button>
     <button
@@ -26,6 +26,7 @@
       type="text"
       [(ngModel)]="event().title"
       (keydown)="onTitleKeyDown($event)"
+      (blur)="onBlur()"
       (click)="$event.stopPropagation()"
       placeholder="כותרת..."
     />
@@ -34,7 +35,7 @@
   }
 </div>
 
-@if (isOpen()) {
+@if (isColorPickerOpen()) {
   <div
     class="inline-color-picker"
     (click)="$event.stopPropagation()"

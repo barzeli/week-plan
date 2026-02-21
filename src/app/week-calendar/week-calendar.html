@@ -15,8 +15,6 @@
           [style.height.px]="cellHeight"
           (mousedown)="onDragStart(day, hour)"
           (mouseenter)="onDragOver(day, hour)"
-          [attr.data-day]="day"
-          [attr.data-hour]="hour"
         ></div>
       }
     </div>
@@ -26,7 +24,6 @@
       <app-event
         class="event"
         [event]="event"
-        [isEditing]="event.isEditing || false"
         (delete)="deleteEvent(event)"
         (confirm)="confirmEvent(event)"
       ></app-event>
