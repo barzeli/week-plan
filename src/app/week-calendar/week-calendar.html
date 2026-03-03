@@ -17,14 +17,12 @@
       ></div>
     }
   }
-  <div class="events-container">
-    @for (event of events(); track $index) {
-      <app-event
-        class="event"
-        [event]="event"
-        (delete)="deleteEvent(event)"
-        (confirm)="confirmEvent(event)"
-      ></app-event>
-    }
-  </div>
+  @for (event of events(); track $index) {
+    <app-event
+      class="event"
+      [event]="event"
+      (delete)="deleteEvent(event)"
+      (confirm)="confirmEvent(event)"
+    ></app-event>
+  }
 </div>

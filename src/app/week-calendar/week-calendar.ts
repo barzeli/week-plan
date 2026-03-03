@@ -142,10 +142,8 @@ export class WeekCalendarComponent {
       color: defaultColor,
       isEditing: true,
       style: {
-        top: `${this.headerHeight + minHourIndex * this.cellHeight}px`,
-        right: `${(startDayIndex * 100) / this.days.length}%`,
-        width: `${100 / this.days.length}%`,
-        height: `${(maxHourIndex - minHourIndex + 1) * this.cellHeight}px`,
+        'grid-column': `${startDayIndex + 2} / ${startDayIndex + 3}`,
+        'grid-row': `${minHourIndex + 2} / ${maxHourIndex + 3}`,
       },
     };
 
