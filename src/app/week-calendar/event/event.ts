@@ -42,17 +42,16 @@ export class EventComponent {
 
   readonly delete = output<MouseEvent>();
   readonly confirm = output<void>();
+  readonly edited = output<void>();
 
   readonly isColorPickerOpen = signal(false);
-  readonly localEditing = signal(false);
+  readonly editing = input(false);
   readonly titleInput = viewChild<ElementRef<HTMLInputElement>>('titleInput');
-
-  readonly editingNow = computed(() => this.event().isEditing || this.localEditing());
 
   constructor() {
     afterRenderEffect(() => {
       const input = this.titleInput();
-      if (this.editingNow() && input) {
+      if (this.editing() && input) {
         input.nativeElement.focus();
       }
     });
@@ -60,7 +59,7 @@ export class EventComponent {
 
   onDblClick(event: MouseEvent) {
     event.stopPropagation();
-    this.localEditing.set(true);
+    this.edited.emit();
   }
 
   onDelete(event: MouseEvent) {
@@ -70,14 +69,12 @@ export class EventComponent {
 
   onTitleKeyDown(event: KeyboardEvent) {
     if (['Enter', 'Escape'].includes(event.key)) {
-      this.localEditing.set(false);
       this.confirm.emit();
     }
   }
 
   onDocumentMouseDown(event: MouseEvent) {
-    if (this.editingNow() && !this.eventElement.nativeElement.contains(event.target)) {
-      this.localEditing.set(false);
+    if (this.editing() && !this.eventElement.nativeElement.contains(event.target)) {
       this.confirm.emit();
     }
   }

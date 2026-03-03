@@ -14,7 +14,6 @@ export interface CalendarEvent {
   endHourIndex: number;
   title: string;
   color: string;
-  isEditing?: boolean;
 }
 
 @Component({
@@ -38,6 +37,7 @@ export class WeekCalendarComponent {
   private readonly slotDuration = 30;
 
   readonly events = signal<CalendarEvent[]>([]);
+  readonly editedEvent = signal<CalendarEvent | null>(null);
   readonly selectedCells = signal<Set<string>>(new Set());
   private readonly isDragging = signal(false);
   private readonly selectionStartCell = signal<CalendarCell | null>(null);
@@ -60,7 +60,7 @@ export class WeekCalendarComponent {
 
   onDragStart(day: string, hour: string) {
     if (this.isCellOccupied(day, hour)) return;
-    this.events.update((prev) => prev.filter((e) => !e.isEditing || e.title.trim() !== ''));
+    this.confirmEvent();
     this.isDragging.set(true);
     this.selectionStartCell.set({ day, hour });
     this.selectionEndCell.set({ day, hour });
@@ -96,19 +96,26 @@ export class WeekCalendarComponent {
 
   deleteEvent(event: CalendarEvent) {
     this.events.update((prev) => prev.filter((e) => e !== event));
+    if (this.editedEvent() === event) {
+      this.editedEvent.set(null);
+    }
   }
 
-  confirmEvent(event: CalendarEvent) {
+  confirmEvent(event: CalendarEvent | null = this.editedEvent()) {
+    if (!event) return;
     if (!event.title.trim()) {
       this.deleteEvent(event);
-    } else {
-      this.events.update((prev) => prev.map((e) => (e === event ? { ...e, isEditing: false } : e)));
     }
+    this.editedEvent.set(null);
+  }
+
+  startEditing(event: CalendarEvent) {
+    this.editedEvent.set(event);
   }
 
   onEscape() {
     this.resetDragState();
-    this.events.update((prev) => prev.filter((e) => !e.isEditing || e.title.trim() !== ''));
+    this.confirmEvent();
   }
 
   protected resetDragState() {
@@ -143,10 +150,10 @@ export class WeekCalendarComponent {
       endHourIndex: maxHourIndex,
       title: '',
       color: defaultColor,
-      isEditing: true,
     };
 
     this.events.update((prev) => [...prev, newEvent]);
+    this.editedEvent.set(newEvent);
   }
 
   private updateSelectedCells() {
