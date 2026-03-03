@@ -39,7 +39,6 @@ export class WeekCalendarComponent {
   readonly events = signal<CalendarEvent[]>([]);
   readonly editedEvent = signal<CalendarEvent | null>(null);
   readonly selectedCells = signal<Set<string>>(new Set());
-  private readonly isDragging = signal(false);
   private readonly selectionStartCell = signal<CalendarCell | null>(null);
   private readonly selectionEndCell = signal<CalendarCell | null>(null);
 
@@ -61,7 +60,6 @@ export class WeekCalendarComponent {
   onDragStart(day: string, hour: string) {
     if (this.isCellOccupied(day, hour)) return;
     this.confirmEvent();
-    this.isDragging.set(true);
     this.selectionStartCell.set({ day, hour });
     this.selectionEndCell.set({ day, hour });
     this.updateSelectedCells();
@@ -69,7 +67,7 @@ export class WeekCalendarComponent {
 
   onDragOver(day: string, hour: string) {
     const startCell = this.selectionStartCell();
-    if (this.isDragging() && startCell && startCell.day === day) {
+    if (startCell && startCell.day === day) {
       const hours = this.hours();
       const startIdx = hours.indexOf(startCell.hour);
       const endIdx = hours.indexOf(hour);
@@ -88,10 +86,8 @@ export class WeekCalendarComponent {
   }
 
   onDocumentMouseUp() {
-    if (this.isDragging()) {
-      this.preparePendingEvent();
-      this.resetDragState();
-    }
+    this.preparePendingEvent();
+    this.resetDragState();
   }
 
   deleteEvent(event: CalendarEvent) {
@@ -119,7 +115,6 @@ export class WeekCalendarComponent {
   }
 
   protected resetDragState() {
-    this.isDragging.set(false);
     this.selectionStartCell.set(null);
     this.selectionEndCell.set(null);
     this.selectedCells.set(new Set<string>());
@@ -159,7 +154,7 @@ export class WeekCalendarComponent {
   private updateSelectedCells() {
     const startCell = this.selectionStartCell();
     const endCell = this.selectionEndCell();
-    const newSelectedCellMap = new Set<string>();
+    const newSelectedCells = new Set<string>();
 
     if (startCell && endCell) {
       const hours = this.hours();
@@ -171,11 +166,11 @@ export class WeekCalendarComponent {
         const minHourIdx = Math.min(startHourIndex, endHourIndex);
         const maxHourIdx = Math.max(startHourIndex, endHourIndex);
         hours.slice(minHourIdx, maxHourIdx + 1).forEach((hour) => {
-          newSelectedCellMap.add(`${startCell.day}-${hour}`);
+          newSelectedCells.add(`${startCell.day}-${hour}`);
         });
       }
     }
-    this.selectedCells.set(newSelectedCellMap);
+    this.selectedCells.set(newSelectedCells);
   }
 
   private isCellOccupied(day: string, hour: string): boolean {
