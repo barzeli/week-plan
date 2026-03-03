@@ -1,12 +1,4 @@
-import {
-  ChangeDetectionStrategy,
-  Component,
-  computed,
-  ElementRef,
-  input,
-  signal,
-  viewChild,
-} from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, input, signal } from '@angular/core';
 import { EventComponent } from './event/event';
 
 export interface CalendarCell {
@@ -44,8 +36,6 @@ export class WeekCalendarComponent {
   private readonly slotDuration = 30;
   protected readonly headerHeight = 40;
   protected readonly cellHeight = 50;
-
-  readonly calendarContainer = viewChild.required<ElementRef<HTMLDivElement>>('calendarContainer');
 
   readonly events = signal<CalendarEvent[]>([]);
   readonly selectedCells = signal<Set<string>>(new Set());
@@ -153,8 +143,8 @@ export class WeekCalendarComponent {
       isEditing: true,
       style: {
         top: `${this.headerHeight + minHourIndex * this.cellHeight}px`,
-        right: `${(startDayIndex * 100) / 7}%`,
-        width: `${100 / 7}%`,
+        right: `${(startDayIndex * 100) / this.days.length}%`,
+        width: `${100 / this.days.length}%`,
         height: `${(maxHourIndex - minHourIndex + 1) * this.cellHeight}px`,
       },
     };

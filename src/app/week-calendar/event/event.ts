@@ -6,8 +6,8 @@ import {
   signal,
   ElementRef,
   viewChild,
-  effect,
   computed,
+  afterRenderEffect,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { CalendarEvent } from '../week-calendar';
@@ -40,7 +40,7 @@ export class EventComponent {
   readonly editingNow = computed(() => this.event().isEditing || this.localEditing());
 
   constructor() {
-    effect(() => {
+    afterRenderEffect(() => {
       const input = this.titleInput();
       if (this.editingNow() && input) {
         input.nativeElement.focus();
