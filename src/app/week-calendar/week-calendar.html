@@ -1,25 +1,21 @@
 <div class="calendar-container">
-  <div class="header-row">
-    <div class="header" [style.height.px]="headerHeight"></div>
-    @for (day of days; track $index) {
-      <div class="header day-header" [style.height.px]="headerHeight">
-        {{ day }}
-      </div>
-    }
-  </div>
-  @for (hour of hours(); track $index) {
-    <div class="calendar-row">
-      <div class="time-slot">{{ hour }}</div>
-      @for (day of days; track $index) {
-        <div
-          class="calendar-cell"
-          [class.selected]="selectedCells().has(day + '-' + hour)"
-          [style.height.px]="cellHeight"
-          (mousedown)="onDragStart(day, hour)"
-          (mouseenter)="onDragOver(day, hour)"
-        ></div>
-      }
+  <div class="header"></div>
+  @for (day of days; track $index) {
+    <div class="header" [style.height.px]="headerHeight">
+      {{ day }}
     </div>
+  }
+  @for (hour of hours(); track $index) {
+    <div class="time-slot">{{ hour }}</div>
+    @for (day of days; track $index) {
+      <div
+        class="calendar-cell"
+        [class.selected]="selectedCells().has(day + '-' + hour)"
+        [style.height.px]="cellHeight"
+        (mousedown)="onDragStart(day, hour)"
+        (mouseenter)="onDragOver(day, hour)"
+      ></div>
+    }
   }
   <div class="events-container">
     @for (event of events(); track $index) {
