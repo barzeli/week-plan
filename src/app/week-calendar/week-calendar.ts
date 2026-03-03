@@ -34,8 +34,6 @@ export class WeekCalendarComponent {
 
   readonly days = ['ראשון', 'שני', 'שלישי', 'רביעי', 'חמישי', 'שישי', 'שבת'];
   private readonly slotDuration = 30;
-  protected readonly headerHeight = 40;
-  protected readonly cellHeight = 50;
 
   readonly events = signal<CalendarEvent[]>([]);
   readonly selectedCells = signal<Set<string>>(new Set());
@@ -123,26 +121,26 @@ export class WeekCalendarComponent {
     const endCell = this.selectionEndCell();
     if (!startCell || !endCell) return;
 
-    const startDay = startCell.day;
-    const startDayIndex = this.days.indexOf(startDay);
+    const day = startCell.day;
+    const dayIndex = this.days.indexOf(day);
     const hours = this.hours();
     const startHourIndex = hours.indexOf(startCell.hour);
     const endHourIndex = hours.indexOf(endCell.hour);
 
-    if (startDayIndex === -1 || startHourIndex === -1 || endHourIndex === -1) return;
+    if (dayIndex === -1 || startHourIndex === -1 || endHourIndex === -1) return;
 
     const minHourIndex = Math.min(startHourIndex, endHourIndex);
     const maxHourIndex = Math.max(startHourIndex, endHourIndex);
     const defaultColor = '#a0c4ff';
 
     const newEvent: CalendarEvent = {
-      start: { day: startDay, hour: hours[minHourIndex] },
-      end: { day: startDay, hour: hours[maxHourIndex] },
+      start: { day, hour: hours[minHourIndex] },
+      end: { day, hour: hours[maxHourIndex] },
       title: '',
       color: defaultColor,
       isEditing: true,
       style: {
-        'grid-column': `${startDayIndex + 2} / ${startDayIndex + 3}`,
+        'grid-column': `${dayIndex + 2} / ${dayIndex + 3}`,
         'grid-row': `${minHourIndex + 2} / ${maxHourIndex + 3}`,
       },
     };
@@ -157,11 +155,11 @@ export class WeekCalendarComponent {
 
     if (startCell && endCell) {
       const hours = this.hours();
-      const startDayIndex = this.days.indexOf(startCell.day);
+      const dayIndex = this.days.indexOf(startCell.day);
       const startHourIndex = hours.indexOf(startCell.hour);
       const endHourIndex = hours.indexOf(endCell.hour);
 
-      if (startDayIndex !== -1 && startHourIndex !== -1 && endHourIndex !== -1) {
+      if (dayIndex !== -1 && startHourIndex !== -1 && endHourIndex !== -1) {
         const minHourIdx = Math.min(startHourIndex, endHourIndex);
         const maxHourIdx = Math.max(startHourIndex, endHourIndex);
         hours.slice(minHourIdx, maxHourIdx + 1).forEach((hour) => {

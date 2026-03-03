@@ -19,6 +19,7 @@
   .header {
     position: sticky;
     top: 0;
+    height: 40px;
     background-color: #ffffff;
     font-weight: 600;
     border-bottom: 1px solid #e0e0e0;
@@ -49,6 +50,7 @@
 
   .calendar-cell {
     position: relative;
+    height: 50px;
     border-bottom: 1px solid #f0f0f0;
     border-right: 1px solid #f0f0f0;
     cursor: pointer;

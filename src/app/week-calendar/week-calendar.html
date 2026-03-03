@@ -1,7 +1,7 @@
 <div class="calendar-container">
   <div class="header"></div>
   @for (day of days; track $index) {
-    <div class="header" [style.height.px]="headerHeight">
+    <div class="header">
       {{ day }}
     </div>
   }
@@ -11,7 +11,6 @@
       <div
         class="calendar-cell"
         [class.selected]="selectedCells().has(day + '-' + hour)"
-        [style.height.px]="cellHeight"
         (mousedown)="onDragStart(day, hour)"
         (mouseenter)="onDragOver(day, hour)"
       ></div>
