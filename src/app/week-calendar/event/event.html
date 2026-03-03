@@ -26,7 +26,6 @@
       type="text"
       [(ngModel)]="event().title"
       (keydown)="onTitleKeyDown($event)"
-      (blur)="onBlur()"
       (click)="$event.stopPropagation()"
       placeholder="כותרת..."
     />

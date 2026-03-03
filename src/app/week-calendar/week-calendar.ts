@@ -9,8 +9,10 @@ export interface CalendarCell {
 export interface CalendarEvent {
   start: { day: string; hour: string };
   end: { day: string; hour: string };
+  dayIndex: number;
+  startHourIndex: number;
+  endHourIndex: number;
   title: string;
-  style: Record<string, string>;
   color: string;
   isEditing?: boolean;
 }
@@ -136,13 +138,12 @@ export class WeekCalendarComponent {
     const newEvent: CalendarEvent = {
       start: { day, hour: hours[minHourIndex] },
       end: { day, hour: hours[maxHourIndex] },
+      dayIndex,
+      startHourIndex: minHourIndex,
+      endHourIndex: maxHourIndex,
       title: '',
       color: defaultColor,
       isEditing: true,
-      style: {
-        'grid-column': `${dayIndex + 2} / ${dayIndex + 3}`,
-        'grid-row': `${minHourIndex + 2} / ${maxHourIndex + 3}`,
-      },
     };
 
     this.events.update((prev) => [...prev, newEvent]);

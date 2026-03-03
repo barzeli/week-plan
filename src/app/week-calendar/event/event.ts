@@ -8,6 +8,7 @@ import {
   viewChild,
   computed,
   afterRenderEffect,
+  inject,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { CalendarEvent } from '../week-calendar';
@@ -22,13 +23,22 @@ import { EventTimeRangePipe } from '../event-time-range/event-time-range-pipe';
   styleUrls: ['./event.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: {
-    '[style]': 'event().style',
+    '[style.grid-row]': 'eventGridRow()',
+    '[style.grid-column]': 'eventGridColumn()',
     '[style.--event-color]': 'event().color',
     '(dblclick)': 'onDblClick($event)',
+    '(document:mousedown)': 'onDocumentMouseDown($event)',
   },
 })
 export class EventComponent {
+  private readonly eventElement = inject(ElementRef);
   readonly event = input.required<CalendarEvent>();
+  readonly eventGridRow = computed(
+    () => `${this.event().startHourIndex + 2} / ${this.event().endHourIndex + 3}`,
+  );
+  readonly eventGridColumn = computed(
+    () => `${this.event().dayIndex + 2} / ${this.event().dayIndex + 3}`,
+  );
 
   readonly delete = output<MouseEvent>();
   readonly confirm = output<void>();
@@ -65,8 +75,8 @@ export class EventComponent {
     }
   }
 
-  onBlur() {
-    if (this.editingNow()) {
+  onDocumentMouseDown(event: MouseEvent) {
+    if (this.editingNow() && !this.eventElement.nativeElement.contains(event.target)) {
       this.localEditing.set(false);
       this.confirm.emit();
     }
