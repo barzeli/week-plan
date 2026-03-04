@@ -3,7 +3,6 @@ import {
   Component,
   input,
   output,
-  signal,
   ElementRef,
   viewChild,
   computed,
@@ -17,7 +16,6 @@ import { EventTimeRangePipe } from '../event-time-range/event-time-range-pipe';
 
 @Component({
   selector: 'app-event',
-  standalone: true,
   imports: [FormsModule, ColorPickerComponent, EventTimeRangePipe],
   templateUrl: './event.html',
   styleUrls: ['./event.scss'],
@@ -44,7 +42,6 @@ export class EventComponent {
   readonly confirm = output<void>();
   readonly edited = output<void>();
 
-  readonly isColorPickerOpen = signal(false);
   readonly editing = input(false);
   readonly titleInput = viewChild<ElementRef<HTMLInputElement>>('titleInput');
 
@@ -81,6 +78,5 @@ export class EventComponent {
 
   onColorSelected(color: string) {
     this.event().color = color;
-    this.isColorPickerOpen.set(false);
   }
 }

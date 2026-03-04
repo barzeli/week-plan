@@ -1,14 +1,23 @@
-<div class="color-picker-container">
-  @for (color of colorPalette; track color) {
-    <button
-      class="palette-color"
-      [style.background]="color"
-      [class.active]="selectedColor() === color"
-      (click)="selectColor(color); $event.stopPropagation()"
-    >
-      @if (selectedColor() === color) {
-        <span class="material-symbols-outlined check-icon">check</span>
-      }
-    </button>
-  }
-</div>
+<button
+  class="color-picker-toggle"
+  [style.background]="selectedColor()"
+  (click)="isColorPickerOpen.set(!isColorPickerOpen())"
+  aria-label="בחר צבע"
+></button>
+
+@if (isColorPickerOpen()) {
+  <div class="color-picker-container">
+    @for (color of colorPalette; track color) {
+      <button
+        class="palette-color"
+        [style.background]="color"
+        [class.active]="selectedColor() === color"
+        (click)="selectColor(color)"
+      >
+        @if (selectedColor() === color) {
+          <span class="material-symbols-outlined check-icon">check</span>
+        }
+      </button>
+    }
+  </div>
+}

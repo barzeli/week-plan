@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, input, output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, input, output, signal } from '@angular/core';
 
 @Component({
   selector: 'app-color-picker',
@@ -10,6 +10,8 @@ import { ChangeDetectionStrategy, Component, input, output } from '@angular/core
 export class ColorPickerComponent {
   readonly selectedColor = input<string | null>(null);
   readonly colorSelected = output<string>();
+
+  readonly isColorPickerOpen = signal(false);
 
   readonly colorPalette = [
     '#ffadad',
@@ -24,6 +26,7 @@ export class ColorPickerComponent {
   ];
 
   selectColor(color: string) {
+    this.isColorPickerOpen.set(false);
     this.colorSelected.emit(color);
   }
 }
