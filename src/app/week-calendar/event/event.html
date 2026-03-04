@@ -2,19 +2,17 @@
   <div class="event-time">{{ event() | eventTimeRange: 30 }}</div>
   <div class="header-controls">
     <button
-      type="button"
       class="color-picker-toggle"
       [style.background]="event().color"
       (click)="isColorPickerOpen.set(!isColorPickerOpen()); $event.stopPropagation()"
       aria-label="בחר צבע"
     ></button>
     <button
-      class="header-action-btn delete-btn"
+      class="delete-button material-symbols-outlined"
       (click)="onDelete($event)"
       title="Delete"
-      aria-label="מחק אירוע"
     >
-      <span class="material-symbols-outlined">delete</span>
+      delete
     </button>
   </div>
 </div>
@@ -23,7 +21,7 @@
   @if (editing()) {
     <input
       #titleInput
-      type="text"
+      class="title-input"
       [(ngModel)]="event().title"
       (keydown)="onTitleKeyDown($event)"
       (click)="$event.stopPropagation()"

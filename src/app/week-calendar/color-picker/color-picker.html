@@ -1,13 +1,10 @@
 <div class="color-picker-container">
   @for (color of colorPalette; track color) {
     <button
-      type="button"
       class="palette-color"
       [style.background]="color"
       [class.active]="selectedColor() === color"
       (click)="selectColor(color); $event.stopPropagation()"
-      [attr.title]="'Color: ' + color"
-      [attr.aria-label]="'Color: ' + color"
     >
       @if (selectedColor() === color) {
         <span class="material-symbols-outlined check-icon">check</span>
