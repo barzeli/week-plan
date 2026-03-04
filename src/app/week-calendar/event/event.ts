@@ -24,7 +24,7 @@ import { EventTimeRangePipe } from '../event-time-range/event-time-range-pipe';
     '[style.grid-row]': 'eventGridRow()',
     '[style.grid-column]': 'eventGridColumn()',
     '[style.--event-color]': 'event().color',
-    '(dblclick)': 'onDblClick($event)',
+    '(dblclick)': 'editEvent($event)',
     '(document:mousedown)': 'onDocumentMouseDown($event)',
   },
 })
@@ -54,8 +54,9 @@ export class EventComponent {
     });
   }
 
-  onDblClick(event: MouseEvent) {
-    event.stopPropagation();
+  editEvent(event: MouseEvent) {}
+
+  editTitle() {
     this.edited.emit();
   }
 
@@ -71,7 +72,12 @@ export class EventComponent {
   }
 
   onDocumentMouseDown(event: MouseEvent) {
-    if (this.editing() && !this.eventElement.nativeElement.contains(event.target)) {
+    const inputElement = this.titleInput();
+    if (
+      this.editing() &&
+      inputElement &&
+      !inputElement.nativeElement.contains(event.target as Node)
+    ) {
       this.confirm.emit();
     }
   }
