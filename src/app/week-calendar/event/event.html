@@ -22,7 +22,6 @@
       class="title-input"
       [(ngModel)]="event().title"
       (keydown)="onTitleKeyDown($event)"
-      (click)="$event.stopPropagation()"
       placeholder="כותרת..."
     />
   } @else {
