@@ -24,7 +24,6 @@ import { EventTimeRangePipe } from '../event-time-range/event-time-range-pipe';
     '[style.grid-row]': 'eventGridRow()',
     '[style.grid-column]': 'eventGridColumn()',
     '[style.--event-color]': 'event().color',
-    '(dblclick)': 'editEvent($event)',
     '(document:mousedown)': 'onDocumentMouseDown($event)',
   },
 })
@@ -53,8 +52,6 @@ export class EventComponent {
       }
     });
   }
-
-  editEvent(event: MouseEvent) {}
 
   editTitle() {
     this.edited.emit();
