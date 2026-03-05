@@ -5,11 +5,8 @@
       [selectedColor]="event().color"
       (colorSelected)="onColorSelected($event)"
     ></app-color-picker>
-    <button
-      class="delete-button material-symbols-outlined"
-      (click)="onDelete($event)"
-      title="Delete"
-    >
+    <button class="delete-button material-symbols-outlined" title="Edit">Edit</button>
+    <button class="delete-button material-symbols-outlined" (click)="onDelete()" title="Delete">
       delete
     </button>
   </div>
@@ -20,7 +17,7 @@
     <input
       #titleInput
       class="title-input"
-      [(ngModel)]="event().title"
+      [ngModel]="event().title"
       (keydown)="onTitleKeyDown($event)"
       placeholder="כותרת..."
     />

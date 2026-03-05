@@ -59,7 +59,6 @@ export class WeekCalendarComponent {
 
   onDragStart(day: string, hour: string) {
     if (this.isCellOccupied(day, hour)) return;
-    this.confirmEvent();
     this.selectionStartCell.set({ day, hour });
     this.selectionEndCell.set({ day, hour });
     this.updateSelectedCells();
@@ -97,9 +96,11 @@ export class WeekCalendarComponent {
     }
   }
 
-  confirmEvent(event: CalendarEvent | null = this.editedEvent()) {
+  confirmEvent(event: CalendarEvent | null = this.editedEvent(), newTitle?: string) {
     if (!event) return;
-    if (!event.title.trim()) {
+    if (newTitle) {
+      event.title = newTitle;
+    } else {
       this.deleteEvent(event);
     }
     this.editedEvent.set(null);

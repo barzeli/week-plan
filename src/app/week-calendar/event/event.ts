@@ -37,8 +37,8 @@ export class EventComponent {
     () => `${this.event().dayIndex + 2} / ${this.event().dayIndex + 3}`,
   );
 
-  readonly delete = output<MouseEvent>();
-  readonly confirm = output<void>();
+  readonly deleted = output<void>();
+  readonly confirm = output<string>();
   readonly edited = output<void>();
 
   readonly editing = input(false);
@@ -47,7 +47,7 @@ export class EventComponent {
   constructor() {
     afterRenderEffect(() => {
       const input = this.titleInput();
-      if (this.editing() && input) {
+      if (input) {
         input.nativeElement.focus();
       }
     });
@@ -57,25 +57,20 @@ export class EventComponent {
     this.edited.emit();
   }
 
-  onDelete(event: MouseEvent) {
-    event.stopPropagation();
-    this.delete.emit(event);
+  onDelete() {
+    this.deleted.emit();
   }
 
   onTitleKeyDown(event: KeyboardEvent) {
     if (['Enter', 'Escape'].includes(event.key)) {
-      this.confirm.emit();
+      this.confirm.emit(this.titleInput()?.nativeElement.value ?? '');
     }
   }
 
   onDocumentMouseDown(event: MouseEvent) {
     const inputElement = this.titleInput();
-    if (
-      this.editing() &&
-      inputElement &&
-      !inputElement.nativeElement.contains(event.target as Node)
-    ) {
-      this.confirm.emit();
+    if (inputElement && !this.eventElement.nativeElement.contains(event.target as Node)) {
+      this.confirm.emit(inputElement.nativeElement.value);
     }
   }
 

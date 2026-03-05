@@ -22,8 +22,8 @@
       [event]="event"
       [editing]="event === editedEvent()"
       (edited)="startEditing(event)"
-      (delete)="deleteEvent(event)"
-      (confirm)="confirmEvent(event)"
+      (deleted)="deleteEvent(event)"
+      (confirm)="confirmEvent(event, $event)"
     ></app-event>
   }
 </div>
