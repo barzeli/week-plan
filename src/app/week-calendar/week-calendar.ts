@@ -106,10 +106,6 @@ export class WeekCalendarComponent {
     this.editedEvent.set(null);
   }
 
-  startEditing(event: CalendarEvent) {
-    this.editedEvent.set(event);
-  }
-
   onEscape() {
     this.resetDragState();
     this.confirmEvent();

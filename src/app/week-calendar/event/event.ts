@@ -2,6 +2,7 @@ import {
   ChangeDetectionStrategy,
   Component,
   input,
+  model,
   output,
   ElementRef,
   viewChild,
@@ -39,9 +40,8 @@ export class EventComponent {
 
   readonly deleted = output<void>();
   readonly confirm = output<string>();
-  readonly edited = output<void>();
+  readonly editing = model(false);
 
-  readonly editing = input(false);
   readonly titleInput = viewChild<ElementRef<HTMLInputElement>>('titleInput');
 
   constructor() {
@@ -54,7 +54,7 @@ export class EventComponent {
   }
 
   editTitle() {
-    this.edited.emit();
+    this.editing.set(true);
   }
 
   onDelete() {
@@ -64,6 +64,7 @@ export class EventComponent {
   onTitleKeyDown(event: KeyboardEvent) {
     if (['Enter', 'Escape'].includes(event.key)) {
       this.confirm.emit(this.titleInput()?.nativeElement.value ?? '');
+      this.editing.set(false);
     }
   }
 
@@ -71,6 +72,7 @@ export class EventComponent {
     const inputElement = this.titleInput();
     if (inputElement && !this.eventElement.nativeElement.contains(event.target as Node)) {
       this.confirm.emit(inputElement.nativeElement.value);
+      this.editing.set(false);
     }
   }
 
